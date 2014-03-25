@@ -29,4 +29,8 @@ int main(int argc, char *argv[])
 		update_model(model, event, delta_time);
 		update_view(view, model, event);
 	}
+
+	close_conf(conf);
+	close_view(view);
+	close_model(model);
 }

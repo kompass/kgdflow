@@ -10,5 +10,6 @@ typedef struct model
 
 model_t* init_model(config_t *conf);
 void update_model(model_t *model, event_t *event, double delta);
+void close_model(model_t *model);
 
 #endif
