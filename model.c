@@ -62,6 +62,15 @@ void init_part_list(part_list_t* cible)
 	cible->first = NULL;
 }
 
+void append_part_cell_list(part_list_t *cible, part_list_cell_t *cell)
+{
+	cell->part = part;
+	cell->prev = NULL;
+	cell->next = cible->first;
+	cible->first->prev = cell;
+	cible->first = cell;	
+}
+
 int append_part_list(part_list_t *cible, particule_t *part);
 {
 	part_list_cell_t *new_cell = malloc(sizeof(part_list_cell_t));
@@ -73,11 +82,7 @@ int append_part_list(part_list_t *cible, particule_t *part);
 		return 1;
 	}
 
-	new_cell->part = part;
-	new_cell->prev = NULL;
-	new_cell->next = cible->first;
-	cible->first->prev = new_cell;
-	cible->first = new_cell;
+	append_part_cell_list(cible, new_cell);
 
 	return 0;
 }
@@ -157,4 +162,42 @@ int insert_part_grid(grid_t *grid, particule_t *part)
 		return 1;
 
 	return 0;
+}
+
+void remove_part_cell_grid(grid_t *grid, part_list_cell_t *cell)
+{
+	int i = 0;
+
+	cell->next->prev = cell->prev;
+	if(cell->prev == NULL)
+	{
+		for(i = 0; i < grid->size; i++)
+		{
+			if(grid->map[i] == cell)
+			{
+				grid->map[i] = cell->next;
+				break;
+			}
+		}
+	}
+	else
+		cell->prev->next = cell->next;
+
+	cell->prev = NULL;
+	cell->next = NULL;
+}
+
+int update_part_cell_grid(grid_t *grid, part_list_cell_t *cell)
+{
+	int hash = part_hash_grid(grid, cell->part);
+	int size = grid->size;
+
+	if(hash < 0 || hash >= size*size*size)
+	{
+		new_error(OUT_OF_BOUNDS_ERROR, "Hash hors limites dans update_part_cell_grid.");
+		return 1;
+	}
+
+	remove_part_cell_grid(grid, cell);
+	append_part_cell_list(grid, part);
 }
