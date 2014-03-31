@@ -62,22 +62,99 @@ void init_part_list(part_list_t* cible)
 	cible->first = NULL;
 }
 
-void init_grid(grid_t *grid, config_t *conf)
+int append_part_list(part_list_t *cible, particule_t *part);
 {
+	part_list_cell_t *new_cell = malloc(sizeof(part_list_cell_t));
+
+	if(new_cell == NULL)
+	{
+		new_error(MEMORY_ALLOC_ERROR,
+			"Erreur d'allocation de part_list_cell_t dans append_part_part_list.");
+		return 1;
+	}
+
+	new_cell->part = part;
+	new_cell->prev = NULL;
+	new_cell->next = cible->first;
+	cible->first->prev = new_cell;
+	cible->first = new_cell;
+
+	return 0;
+}
+
+int init_grid(grid_t *grid, config_t *conf)
+{
+	int size = conf->grid_size;
+
 	grid->delta = conf->grid_delta;
-	grid->size = grid_size;
-	grid->map = malloc(grid->size * sizeof(part_list_t));
+	grid->size = size;
+	grid->map = malloc(size * size * size * sizeof(part_list_t));
+
+	if(grid->map == NULL)
+	{
+		new_error(MEMORY_ALLOC_ERROR,
+			"Erreur d'allocation d'un tableau de part_list_t dans init_grid.");
+		return 1;
+	}
 
 	int i = 0;
 	for(i = 0; i < grid->size; i++)
 		init_part_list(&(grid->map[i]));
+
+	return 0;
 }
 
 model_t* init_model(config_t *conf)
 {
 	model_t *model = malloc(sizeof(model_t));
 
+	if(model == NULL)
+	{
+		new_error(MEMORY_ALLOC_ERROR, "Erreur d'allocation de model_t dans init_model.");
+		return NULL;
+	}
+
 	model->num_of_part = 0;
 	model->chunk_list = NULL;
-	init_grid(&(model->part_grid), conf);
+
+	int error = 0;
+	error = init_grid(&(model->part_grid), conf);
+
+	if(error)
+	{
+		free(model);
+		return 1;
+	}
+
+	return model;
+}
+
+int part_hash_grid(grid_t *grid, particule_t *part)
+{
+	int x = (int) part->pos->x / grid->delta;
+	int y = (int) part->pos->y / grid->delta;
+	int z = (int) part->pos->z / grid->delta;
+	int size = grid->size;
+
+	return (x*size+y)*size + z;
+}
+
+int insert_part_grid(grid_t *grid, particule_t *part)
+{
+	int hash = part_hash_grid(grid, part);
+	int error = 0;
+	int size = grid->size;
+
+	if(hash < 0 || hash >= size*size*size)
+	{
+		new_error(OUT_OF_BOUNDS_ERROR, "Hash hors limites dans insert_part_grid");
+		return 1;
+	}
+
+	error = append_part_list(grid->map[hash], part);
+
+	if(error)
+		return 1;
+
+	return 0;
 }

@@ -57,8 +57,12 @@ void mul_vect(vect_t *cible, double coef);
 void init_part(particule_t *cible, vect *pos, vect_t *speed);
 
 void init_part_list(part_list_t* cible);
+int append_part_list(part_list_t *cible, particule_t *part);
 
-void init_grid(grid_t *grid, config_t *conf)
+int init_grid(grid_t *grid, config_t *conf);
+int part_hash_grid(grid_t *grid, particule_t *part);
+int insert_part_grid(grid_t *grid, particule_t *part);
+
 
 model_t* init_model(config_t *conf);
 void update_model(model_t *model, event_t *event, double delta);
