@@ -31,3 +31,12 @@ void new_error(int error_type, char *comment)
 	error->next = g_error_list;
 	g_error_list = error;
 }
+
+error_t* get_error_list()
+{
+	error_t *err = g_error_list;
+
+	g_error_list = NULL;
+
+	return err;
+}

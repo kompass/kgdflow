@@ -44,10 +44,23 @@ void mul_vect(vect_t *cible, double coef)
 	cible->z *= coef;
 }
 
-void mul_vect(vect_t *cible, double coef)
+double scalar_product_vect(vect_t *a, vect_t *b)
 {
-	double x = cible->x, y = cible->y, z = cible->z;
+	return a->x * b->x + a->y * b->y + a->z * b->z;
+}
+
+double length_vect(vect_t *cible)
+{
+	double x = cible->x;
+	double y = cible->y;
+	double z = cible->z;
+
 	return sqrt(x*x + y*y + z*z);
+}
+
+void normalize_vect(vect_t *cible)
+{
+	mul_vect(cible, 1 / length_vect(cible));
 }
 
 void init_part(particule_t *cible, vect *pos, vect_t *speed)
@@ -68,7 +81,8 @@ void append_part_cell_list(part_list_t *cible, part_list_cell_t *cell)
 	cell->prev = NULL;
 	cell->next = cible->first;
 	cible->first->prev = cell;
-	cible->first = cell;	
+	cible->first = cell;
+	cible->length++;
 }
 
 int append_part_list(part_list_t *cible, particule_t *part);
@@ -119,7 +133,8 @@ model_t* init_model(config_t *conf)
 		return NULL;
 	}
 
-	model->num_of_part = 0;
+	model->num_chunk = 0;
+	model->max_chunk = 0;
 	model->chunk_list = NULL;
 
 	int error = 0;
@@ -131,7 +146,15 @@ model_t* init_model(config_t *conf)
 		return 1;
 	}
 
+	init_vect(model->gravity, 0, 0, config->gravity);
+	model->h = config->h;
+
 	return model;
+}
+
+void close_model(model_t *model)
+{
+	free(model);
 }
 
 int part_hash_grid(grid_t *grid, particule_t *part)
@@ -200,4 +223,137 @@ int update_part_cell_grid(grid_t *grid, part_list_cell_t *cell)
 
 	remove_part_cell_grid(grid, cell);
 	append_part_cell_list(grid, part);
+}
+
+/*
+double quintic_kernel(vect_t *vect, double h)
+{
+	double alpha = 7 / (8*pi*h*h*h);
+	double q = length_vect(vect) / h;
+
+	double x = (1 - q/2);
+	double x4 = x*x*x*x;
+
+	return alpha*x4*(2*q + 1);
+}
+*/
+
+/*
+double quintic_kernel_deriv(vect_t *vect, double h)
+{
+	double alpha = 7 / (8*pi*h*h*h);
+	double q = length_vect(vect) / h;
+
+	double x = (1 - q/2);
+}
+*/
+
+/*
+void compute_particule_position(particule_t *part, part_list *neighbors)
+{
+	
+}
+*/
+
+int add_chunk(model_t *model, vect_t *pos)
+{
+	int i = 0;
+
+	model->num_chunk++;
+	if(model->num_chunk > model->max_chunk)
+	{
+		particule_t **new_chunk_list = malloc((model->max_chunk + 8) * sizeof(*particule_t));
+		for(i = 0; i < model->num_chunk - 1; i++)
+			new_chunk_list[i] = model->chunk_list[i];
+		model->chunk_list = new_chunk_list;
+		model->max_chunk += 8;
+	}
+
+	particule_t *new_chunk = malloc()
+	model->chunk_list[model->num_chunk - 1] =
+}
+
+void update_model(model_t *model, event_t *event, double delta)
+{
+	particule_t *part, *neighbor;
+	vect_t gravity_action, r_ij, u_ij, v_ji, viscosity_action, relax_action;
+	double h = model->h;
+	double q, u;
+	double dens, dens_neigh, press, press_neigh;
+	double dens0 = model->dens0;
+	double k = model->k;
+	double k_neigh = model->k_neigh;
+	double buffer;
+
+	//pour toute particule part:
+	//Calcul Viscosité:
+	//pour toute particule neighbor voisine de part tq i<j :
+	copy_vect(&r_ij, &(neighbor->pos));
+	sub_vect(&r_ij, &(part->pos));
+	q = length_vect(&r_ij) / h;
+	if(q < 1)
+	{
+		copy_vect(&u_ij, &r_ij);
+		normalize_vect(&u_ij);
+
+		copy_vect(&v_ji, &(part->speed));
+		sub_vect(&v_ji, &(neighbor->speed));
+
+		//vitesse radiale entrante
+		u = scalar_product_vect(&v_ji, &u_ij);
+
+		if(u > 0)
+		{
+			copy_vect(&viscosity_action, &u_ij);
+			mul_vect(&viscosity_action, delta * (1 - q) * (sigma*u + beta*u*u));
+			mul_vect(&viscosity_action, 1 / 2);
+
+			sub_vect(&(part->speed), &viscosity_action);
+			add_vect(&(neighbor->speed), &viscosity_action);
+		}
+	}
+	//Fin Pour tous voisins
+
+	//Calcul gravité
+	copy_vect(&gravity_action, &(model->gravity));
+	mul_vect(&gravity_action, delta);
+	add_vect(&(part->speed), &gravity_action);
+	//Fin pour toute particule
+
+	//pour toute particule
+	//Calcul relaxation double densité
+	dens = 0;
+	dens_neigh = 0;
+	//Pour toute particule voisine
+	copy_vect(&r_ij, &(neighbor->pos));
+	sub_vect(&r_ij, &(part->pos));
+	q = length_vect(&r_ij) / h;
+
+	if(q < 1)
+	{
+		buffer = 1 - q;
+		dens += buffer * buffer;
+		dens_neigh += buffer * buffer * buffer;
+	}
+
+	//Fin pour toute particule voisine
+
+	press = k * (dens - dens0);
+	press_neigh = k_neigh * dens_neigh;
+
+	//Pour toute particule voisine
+	copy_vect(&r_ij, &(neighbor->pos));
+	sub_vect(&r_ij, &(part->pos));
+	q = length_vect(&r_ij) / h;
+	copy_vect(&u_ij, &r_ij);
+	normalize_vect(&u_ij);
+	if(q < 1)
+	{
+		copy_vect(&relax_action, &u_ij);
+		buffer = 1 - q;
+		mul_vect(&relax_action, delta*delta*(press*buffer + press_neigh*buffer*buffer));
+		mul_vect(&relax_action, 1/2);
+		add_vect(&(neighbor->pos), &relax_action);
+		sub_vect(&(part->pos), &relax_action);
+	}
 }

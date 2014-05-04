@@ -1,3 +1,18 @@
+/**
+* \file main.c
+*
+* \brief Programme de simulation de liquide.
+*
+* \author Nicolas KIRCHNER, Matthieu GOUEL et Deborah DARDOUR
+*
+* \version 0.1
+*
+*
+* KGDFlow est un programme de simulation de liquide utilisant la méthode de la SPH.
+* 
+*
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <SDL/SDL.h>
@@ -8,9 +23,20 @@
 
 double temporize(config_t *conf)
 {
-	
+
 }
 
+/**
+* \fn int main(int argc, char *argv[])
+* \brief Fonction principale.
+*
+*
+* La fonction principale récupère les arguments et le fichier de configuration,
+* initialise la vue, le modèle, puis éxécute la boucle de calcul.
+* Une fois cette boucle terminée, elle libère la mémoire et finalise l'éxécution.
+*
+*
+*/
 int main(int argc, char *argv[])
 {
 	config_t *conf = parse_args(argc, argv);

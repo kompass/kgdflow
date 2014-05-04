@@ -12,6 +12,7 @@ typedef struct error
 extern error_t g_error_list;
 
 void new_error(int error_type, char *comment);
+error_t* get_error_list();
 
 
 

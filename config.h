@@ -8,6 +8,11 @@ typedef struct config
 	double grid_delta;
 	int grid_size;
 	int size_of_chunk;
+	double gravity;
+	double h;
+	double dens0;
+	double k;
+	
 } config_t;
 
 config_t* parse_args(int argc, char *argv);
