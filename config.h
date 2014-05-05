@@ -15,7 +15,7 @@ typedef struct config
 	
 } config_t;
 
-config_t* parse_args(int argc, char *argv);
+config_t* parse_args(int argc, char *argv[]);
 void close_conf(config_t *conf);
 
 #endif

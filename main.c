@@ -47,13 +47,16 @@ int main(int argc, char *argv[])
 
 	int run = 1;
 	double delta_time = 0;
+	event_t event;
 
-	while(run)
+	init_event(&event);
+
+	while(!event.exit_wanted)
 	{
 		delta_time = temporize(conf);
-		event_t *event = get_event(view);
-		update_model(model, event, delta_time);
-		update_view(view, model, event);
+		get_event(&event, view);
+		//update_model(model, event, delta_time);
+		update_view(view, model, &event);
 	}
 
 	close_conf(conf);

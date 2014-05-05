@@ -1,10 +1,14 @@
 #include "error.h"
 
-error_t g_error_list = NULL;
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+error_t *g_error_list = NULL;
 
 void new_error(int error_type, char *comment)
 {
-	error_t error = malloc(sizeof(error_t));
+	error_t *error = malloc(sizeof(error_t));
 
 	if(error == NULL)
 	{

@@ -5,23 +5,28 @@
 #include "model.h"
 
 #include <SDL/SDL.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 
 typedef struct view
 {
 	SDL_Surface *screen;
+
 } view_t;
 
 typedef struct event
 {
+	int exit_wanted;
 
 } event_t;
 
 view_t* init_view(config_t *conf);
 void update_view(view_t *view, model_t *model, event_t *event);
-event_t* get_event(view_t *view);
+void init_event(event_t *event);
+void get_event(event_t *event, view_t *view);
 void close_view(view_t *view);
-Uint32 get_pixel(view_t *view, int x, int y);
-void set_pixel(view_t *view, int x, int y, Uint32 pixel);
-void set_transp_pixel(view_t *view, int x, int y, Uint32 pixel, int coef);
+//Uint32 get_pixel(view_t *view, int x, int y);
+//void set_pixel(view_t *view, int x, int y, Uint32 pixel);
+//void set_transp_pixel(view_t *view, int x, int y, Uint32 pixel, int coef);
 
 #endif

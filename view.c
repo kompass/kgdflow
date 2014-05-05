@@ -1,5 +1,8 @@
 #include "view.h"
 
+#include "error.h"
+
+/*
 Uint32 get_pixel(view_t *view, int x, int y)
 {
     int bpp = view->screen->format->BytesPerPixel;
@@ -81,6 +84,29 @@ void set_transp_pixel(view_t *view, int x, int y, Uint32 pixel, int coef)
 
 	set_pixel(view, x, y, pixel);
 }
+*/
+
+void init_event(event_t *event)
+{
+    event->exit_wanted = 0;
+}
+
+void get_event(event_t *event, view_t *view)
+{
+    SDL_Event sdl_event;
+
+    init_event(event);
+
+    if(SDL_PollEvent(&sdl_event))
+    {
+        switch(sdl_event.type)
+        {
+            case SDL_QUIT:
+                event->exit_wanted = 1;
+                break;
+        }
+    }
+}
 
 view_t* init_view(config_t *conf)
 {
@@ -92,7 +118,9 @@ view_t* init_view(config_t *conf)
 		return NULL;
 	}
 
-	view->screen = SDL_SetVideoMode(conf->screen_width, conf->screen_height, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
+    SDL_Init(SDL_INIT_VIDEO);
+
+	view->screen = SDL_SetVideoMode(conf->screen_width, conf->screen_height, 32, SDL_OPENGL);
 
 	if(view->screen == NULL)
 	{
@@ -101,6 +129,19 @@ view_t* init_view(config_t *conf)
 	}
 
 	return view;
+}
+
+void update_view(view_t *view, model_t *model, event_t *event)
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glBegin(GL_TRIANGLES);
+        glColor3ub(255,0,0);    glVertex2d(-0.75,-0.75);
+        glColor3ub(0,255,0);    glVertex2d(0,0.75);
+        glColor3ub(0,0,255);    glVertex2d(0.75,-0.75);
+    glEnd();
+    glFlush();
+    SDL_GL_SwapBuffers();
 }
 
 void close_view(view_t *view)

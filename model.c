@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include "error.h"
 
 void init_vect(vect_t *cible, double x, double y, double z)
 {
@@ -63,7 +64,7 @@ void normalize_vect(vect_t *cible)
 	mul_vect(cible, 1 / length_vect(cible));
 }
 
-void init_part(particule_t *cible, vect *pos, vect_t *speed)
+void init_part(particule_t *cible, vect_t *pos, vect_t *speed)
 {
 	copy_vect(&(cible->pos), pos);
 	copy_vect(&(cible->speed), speed);
@@ -71,13 +72,12 @@ void init_part(particule_t *cible, vect *pos, vect_t *speed)
 
 void init_part_list(part_list_t* cible)
 {
-	cible->size = 0;
+	cible->length = 0;
 	cible->first = NULL;
 }
 
 void append_part_cell_list(part_list_t *cible, part_list_cell_t *cell)
 {
-	cell->part = part;
 	cell->prev = NULL;
 	cell->next = cible->first;
 	cible->first->prev = cell;
@@ -85,7 +85,7 @@ void append_part_cell_list(part_list_t *cible, part_list_cell_t *cell)
 	cible->length++;
 }
 
-int append_part_list(part_list_t *cible, particule_t *part);
+int append_part_list(part_list_t *cible, particule_t *part)
 {
 	part_list_cell_t *new_cell = malloc(sizeof(part_list_cell_t));
 
@@ -96,6 +96,7 @@ int append_part_list(part_list_t *cible, particule_t *part);
 		return 1;
 	}
 
+	new_cell->part = part;
 	append_part_cell_list(cible, new_cell);
 
 	return 0;
@@ -143,11 +144,11 @@ model_t* init_model(config_t *conf)
 	if(error)
 	{
 		free(model);
-		return 1;
+		return NULL;
 	}
 
-	init_vect(model->gravity, 0, 0, config->gravity);
-	model->h = config->h;
+	init_vect(&(model->gravity), 0, 0, conf->gravity);
+	model->h = conf->h;
 
 	return model;
 }
@@ -159,9 +160,9 @@ void close_model(model_t *model)
 
 int part_hash_grid(grid_t *grid, particule_t *part)
 {
-	int x = (int) part->pos->x / grid->delta;
-	int y = (int) part->pos->y / grid->delta;
-	int z = (int) part->pos->z / grid->delta;
+	int x = (int) part->pos.x / grid->delta;
+	int y = (int) part->pos.y / grid->delta;
+	int z = (int) part->pos.z / grid->delta;
 	int size = grid->size;
 
 	return (x*size+y)*size + z;
@@ -179,7 +180,7 @@ int insert_part_grid(grid_t *grid, particule_t *part)
 		return 1;
 	}
 
-	error = append_part_list(grid->map[hash], part);
+	error = append_part_list(&(grid->map[hash]), part);
 
 	if(error)
 		return 1;
@@ -196,9 +197,9 @@ void remove_part_cell_grid(grid_t *grid, part_list_cell_t *cell)
 	{
 		for(i = 0; i < grid->size; i++)
 		{
-			if(grid->map[i] == cell)
+			if(grid->map[i].first == cell)
 			{
-				grid->map[i] = cell->next;
+				grid->map[i].first = cell->next;
 				break;
 			}
 		}
@@ -222,7 +223,7 @@ int update_part_cell_grid(grid_t *grid, part_list_cell_t *cell)
 	}
 
 	remove_part_cell_grid(grid, cell);
-	append_part_cell_list(grid, part);
+	append_part_cell_list(&(grid->map[hash]), cell);
 }
 
 /*
@@ -257,22 +258,51 @@ void compute_particule_position(particule_t *part, part_list *neighbors)
 
 int add_chunk(model_t *model, vect_t *pos)
 {
-	int i = 0;
+	int i = 0, j = 0, k = 0;
+	int soc = model->size_of_chunk;
 
 	model->num_chunk++;
 	if(model->num_chunk > model->max_chunk)
 	{
-		particule_t **new_chunk_list = malloc((model->max_chunk + 8) * sizeof(*particule_t));
+		particule_t **new_chunk_list = malloc((model->max_chunk + 8) * sizeof(particule_t*));
+		if(new_chunk_list == NULL)
+		{
+			new_error(MEMORY_ALLOC_ERROR,
+				"Erreur d'allocation d'un tableau de pointeurs dans add_chunk.");
+			return 1;
+		}
+
 		for(i = 0; i < model->num_chunk - 1; i++)
 			new_chunk_list[i] = model->chunk_list[i];
+
 		model->chunk_list = new_chunk_list;
 		model->max_chunk += 8;
 	}
 
-	particule_t *new_chunk = malloc()
-	model->chunk_list[model->num_chunk - 1] =
+	particule_t *new_chunk = malloc(soc * soc * soc * sizeof(particule_t));
+	if(new_chunk == NULL)
+	{
+		new_error(MEMORY_ALLOC_ERROR,
+			"Erreur d'allocation d'un tableau de particule_t dans add_chunk.");
+		return 1;
+	}
+
+	for(i = 0; i < soc; i++)
+	{
+		for(j = 0; j < soc; j++)
+		{
+			for(k = 0; k < soc; k++)
+			{
+				init_vect(&(new_chunk[(i*soc + j)* soc + k].speed), 0, 0, 0);
+				//TODO : Placer chaque particule -> init_vect(new_chunk[(i*soc + j)* soc + k]->pos, ?, ?, ?);
+			}
+		}
+	}
+
+	model->chunk_list[model->num_chunk - 1] = new_chunk;
 }
 
+/*
 void update_model(model_t *model, event_t *event, double delta)
 {
 	particule_t *part, *neighbor;
@@ -357,3 +387,4 @@ void update_model(model_t *model, event_t *event, double delta)
 		sub_vect(&(part->pos), &relax_action);
 	}
 }
+*/

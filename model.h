@@ -49,7 +49,7 @@ typedef struct part_list_cell
 */
 typedef struct part_list
 {
-	part_list_cell *first;
+	part_list_cell_t *first;
 	int length;
 
 } part_list_t;
@@ -146,7 +146,7 @@ double length_vect(vect_t *cible);
 * \fn void init_part(particule_t *cible, vect *pos, vect_t *speed)
 * \brief Initialise une particule particule_t en la modifiant sur place.
 */
-void init_part(particule_t *cible, vect *pos, vect_t *speed);
+void init_part(particule_t *cible, vect_t *pos, vect_t *speed);
 
 /**
 * \fn void init_part_list(part_list_t* cible)
@@ -229,11 +229,21 @@ int update_part_cell_grid(grid_t *grid, part_list_cell_t *cell);
 model_t* init_model(config_t *conf);
 
 /**
-*
-*
+* \fn int add_chunk(model_t *model, vect_t *pos)
+* \brief Ajoute un bloc de particules à la position spécifiée.
 */
 int add_chunk(model_t *model, vect_t *pos);
-void update_model(model_t *model, event_t *event, double delta);
+
+/**
+* \fn void update_model(model_t *model, event_t *event, double delta)
+*
+*/
+//void update_model(model_t *model, event_t *event, double delta);
+
+/**
+* \fn void close_model(model_t *model)
+* \brief détruit la structure model et libère la mémoire utilisée.
+*/
 void close_model(model_t *model);
 
 #endif
