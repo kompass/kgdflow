@@ -45,7 +45,6 @@ int main(int argc, char *argv[])
 
 	model_t *model = init_model(conf);
 
-	int run = 1;
 	double delta_time = 0;
 	event_t event;
 
@@ -62,4 +61,6 @@ int main(int argc, char *argv[])
 	close_conf(conf);
 	close_view(view);
 	close_model(model);
+
+	return 0;
 }

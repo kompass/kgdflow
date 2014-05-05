@@ -224,6 +224,7 @@ int update_part_cell_grid(grid_t *grid, part_list_cell_t *cell)
 
 	remove_part_cell_grid(grid, cell);
 	append_part_cell_list(&(grid->map[hash]), cell);
+	return 0;
 }
 
 /*
@@ -300,6 +301,7 @@ int add_chunk(model_t *model, vect_t *pos)
 	}
 
 	model->chunk_list[model->num_chunk - 1] = new_chunk;
+	return 0;
 }
 
 /*

@@ -21,7 +21,7 @@ void new_error(int error_type, char *comment)
 	error->type = error_type;
 	error->comment = malloc((strlen(comment)+1)*sizeof(char));
 
-	if(error->comment = NULL)
+	if(error->comment == NULL)
 	{
 		free(error);
 		fprintf(stderr,
