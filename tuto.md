@@ -10,7 +10,7 @@ Parcourir l'ensemble des particules
 Dans la fonction update_view, tu as une structure de type ```model_t``` passée en paramètre au travers du pointeur ```model_t *model```. Le header ```model.h``` est déjà inclu, donc tu peux utiliser la structure sans problème.
 Voici le code pour parcourir toutes les particules et acceder à leur vecteur position:
 
-```
+```C
 particule_t *part = NULL;
 int i=0, j=0;
 
@@ -32,6 +32,10 @@ Voilà !
 Avoir la taille du monde
 ----
 
-```
+```C
 model->part_grid.size // Voilà la taille d'un coté du monde (le monde est un cube).
 ```
+
+----
+
+Amour et tendresse !
