@@ -21,6 +21,7 @@ typedef struct event
 } event_t;
 
 view_t* init_view(config_t *conf);
+double temporize(config_t *conf);
 void update_view(view_t *view, model_t *model, event_t *event);
 void init_event(event_t *event);
 void get_event(event_t *event, view_t *view);

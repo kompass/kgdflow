@@ -12,6 +12,7 @@ typedef struct config
 	double h;
 	double dens0;
 	double k;
+	int delay;
 	
 } config_t;
 

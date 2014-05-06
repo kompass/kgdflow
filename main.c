@@ -21,11 +21,6 @@
 #include "view.h"
 #include "model.h"
 
-double temporize(config_t *conf)
-{
-
-}
-
 /**
 * \fn int main(int argc, char *argv[])
 * \brief Fonction principale.

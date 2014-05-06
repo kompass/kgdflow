@@ -108,6 +108,24 @@ void get_event(event_t *event, view_t *view)
     }
 }
 
+double temporize(config_t *conf)
+{
+    static Uint32 ticks = 0;
+    Uint32 new_ticks = 0;
+    double real_delay = 0;
+
+    if(ticks == 0)
+        ticks = SDL_GetTicks();
+
+    SDL_Delay(conf->delay);
+
+    new_ticks = SDL_GetTicks();
+    real_delay = (double) (new_ticks - ticks) / 1000;
+    ticks = new_ticks;
+
+    return real_delay; 
+}
+
 view_t* init_view(config_t *conf)
 {
 	view_t *view = malloc(sizeof(view_t));
