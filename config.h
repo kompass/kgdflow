@@ -13,6 +13,8 @@ typedef struct config
 	double dens0;
 	double k;
 	int delay;
+	double sigma;
+	double beta;
 	
 } config_t;
 

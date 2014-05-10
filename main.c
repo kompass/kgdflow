@@ -36,6 +36,11 @@ int main(int argc, char *argv[])
 {
 	config_t *conf = parse_args(argc, argv);
 
+	if(conf == NULL)
+	{
+		return 1;
+	}
+
 	view_t *view = init_view(conf);
 
 	model_t *model = init_model(conf);

@@ -5,7 +5,7 @@ EXEC=kgdflow
 
 all: $(EXEC)
 
-kgdflow: main.o view.o model.o config.o error.o
+kgdflow: main.o view.o model.o config.o error.o ini.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 %.o: %.c

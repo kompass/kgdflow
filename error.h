@@ -4,6 +4,7 @@
 #define MEMORY_ALLOC_ERROR 1
 #define SDL_ERROR 2
 #define OUT_OF_BOUNDS_ERROR 3
+#define LOGIC_ERROR 4
 
 typedef struct error
 {

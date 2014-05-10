@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "error.h"
+#include "view.h"
 
 void init_vect(vect_t *cible, double x, double y, double z)
 {
@@ -147,6 +148,9 @@ model_t* init_model(config_t *conf)
 		return NULL;
 	}
 
+	model->beta = conf->beta;
+	model->sigma = conf->sigma;
+
 	init_vect(&(model->gravity), 0, 0, conf->gravity);
 	model->h = conf->h;
 
@@ -158,14 +162,19 @@ void close_model(model_t *model)
 	free(model);
 }
 
-int part_hash_grid(grid_t *grid, particule_t *part)
+int hash_grid(grid_t *grid, vect_t *pos)
 {
-	int x = (int) part->pos.x / grid->delta;
-	int y = (int) part->pos.y / grid->delta;
-	int z = (int) part->pos.z / grid->delta;
+	int x = (int) pos->x / grid->delta;
+	int y = (int) pos->y / grid->delta;
+	int z = (int) pos->z / grid->delta;
 	int size = grid->size;
 
 	return (x*size+y)*size + z;
+}
+
+int part_hash_grid(grid_t *grid, particule_t *part)
+{
+	return hash_grid(grid, &(part->pos));
 }
 
 int insert_part_grid(grid_t *grid, particule_t *part)
@@ -176,7 +185,7 @@ int insert_part_grid(grid_t *grid, particule_t *part)
 
 	if(hash < 0 || hash >= size*size*size)
 	{
-		new_error(OUT_OF_BOUNDS_ERROR, "Hash hors limites dans insert_part_grid");
+		new_error(OUT_OF_BOUNDS_ERROR, "Hash hors limites dans insert_part_grid.");
 		return 1;
 	}
 
@@ -186,6 +195,20 @@ int insert_part_grid(grid_t *grid, particule_t *part)
 		return 1;
 
 	return 0;
+}
+
+part_list_t* get_same_case_list(grid_t *grid, vect_t *pos)
+{
+	int hash = hash_grid(grid, pos);
+	int size = grid->size;
+
+	if(hash < 0 || hash >= size*size*size)
+	{
+		new_error(OUT_OF_BOUNDS_ERROR, "Hash hors limites dans get_same_case_list.");
+		return NULL;
+	}
+
+	return &(grid->map[hash]);
 }
 
 void remove_part_cell_grid(grid_t *grid, part_list_cell_t *cell)
@@ -291,6 +314,7 @@ int add_chunk(model_t *model, vect_t *pos)
 
 	for(i = 0; i < soc; i++)
 	{
+		
 		for(j = 0; j < soc; j++)
 		{
 			for(k = 0; k < soc; k++)
@@ -306,6 +330,164 @@ int add_chunk(model_t *model, vect_t *pos)
 	return 0;
 }
 
+void apply_gravity(model_t *model, double delta)
+{
+	int i = 0, j = 0;
+	vect_t gravity_action;
+	particule_t *part = NULL;
+
+	copy_vect(&gravity_action, &(model->gravity));
+	mul_vect(&gravity_action, delta);
+
+	for(i = 0; i < model->num_chunk; i++)
+	{
+		for(j = 0; j < model->size_of_chunk; j++)
+		{
+			part = &(model->chunk_list[i][j]);
+			add_vect(&(part->speed), &gravity_action);
+		}
+	}
+
+}
+
+/*
+* L'algorithme de cette fonction est inspirée du pseudo-code
+* d'un projet d'élèves de l'Ensimag disponible sur le site de l'école.
+* Cf le compte-rendu de ce projet.
+*/
+int apply_viscosity(model_t *model, double delta)
+{
+	int i = 0, j = 0, k = 0;
+	particule_t *part = NULL, *neighbor = NULL;
+	vect_t viscosity_action, r_ij, u_ij, v_ji;
+	double q, u;
+	part_list_cell_t *cell = NULL;
+	vect_t pos, delta_x, delta_y, delta_z, delta_neg_x, delta_neg_y, delta_neg_z;
+
+	double sigma = model->sigma;
+	double beta = model->beta;
+	double h = model->h;
+
+	init_vect(&delta_x, model->part_grid.delta, 0, 0);
+	init_vect(&delta_y, 0, model->part_grid.delta, 0);
+	init_vect(&delta_z, 0, 0, model->part_grid.delta);
+	init_vect(&delta_neg_x, -model->part_grid.delta, 0, 0);
+	init_vect(&delta_neg_y, 0, -model->part_grid.delta, 0);
+	init_vect(&delta_neg_z, 0, 0, -model->part_grid.delta);
+
+	//Pour toute particule part
+	for(i = 0; i <model->num_chunk; i++)
+	{
+		for(j = 0; j < model->size_of_chunk; j++)
+		{
+			part = &(model->chunk_list[i][j]);
+
+			// pour toute particule neighbor voisine de part
+			// sauf celles pour lesquelles ont a déjà rencontré le couple(part, neighbor)
+			// pour éviter d'appliquer deux fois la transformation
+			for(k = 0; k < 4; k++)
+			{
+				switch(k)
+				{
+					case 0:
+						copy_vect(&pos, &(part->pos));
+						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						//On ignore les particules précédant part
+						while(cell->part != part)
+						{
+							if(cell == NULL)
+							{
+								new_error(LOGIC_ERROR,
+									"Une particule n'est pas gérée par la structure de partitionnement.");
+								return 1;
+							}
+
+							cell = cell->next;
+						}
+						cell = cell->next;
+						break;
+					case 1:
+						copy_vect(&pos, &(part->pos));
+						add_vect(&pos, &delta_x);
+						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						break;
+					case 2:
+						copy_vect(&pos, &(part->pos));
+						add_vect(&pos, &delta_y);
+						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						break;
+					case 3:
+						copy_vect(&pos, &(part->pos));
+						add_vect(&pos, &delta_z);
+						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						break;
+				}
+
+				while(cell != NULL)
+				{
+					neighbor = cell->part;
+
+					copy_vect(&r_ij, &(neighbor->pos));
+					sub_vect(&r_ij, &(part->pos));
+					q = length_vect(&r_ij) / h;
+
+					if(q < 1)
+					{
+						copy_vect(&u_ij, &r_ij);
+						normalize_vect(&u_ij);
+
+						copy_vect(&v_ji, &(part->speed));
+						sub_vect(&v_ji, &(neighbor->speed));
+
+						u = scalar_product_vect(&v_ji, &u_ij);
+
+						if(u > 0)
+						{
+							copy_vect(&viscosity_action, &u_ij);
+							mul_vect(&viscosity_action, delta * (1 - q) * (sigma*u + beta*u*u));
+							mul_vect(&viscosity_action, 1/2);
+
+							sub_vect(&(part->speed), &viscosity_action);
+							add_vect(&(neighbor->speed), &viscosity_action);
+						}
+					}
+					cell = cell->next;
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
+int apply_double_intensity_relaxation(model_t *model)
+{
+	int i = 0, j = 0;
+	particule_t *part = NULL;
+
+	for(i = 0; i < model->num_chunk; i++)
+	{
+		for (j = 0; j < model->size_of_chunk; ++j)
+		{
+			part = &(model->chunk_list[i][j]);
+
+			
+		}
+	}
+
+}
+
+int update_model(model_t *model, event_t *event, double delta)
+{
+	int error = 0;
+
+	apply_gravity(model, delta);
+
+	error = apply_viscosity(model, delta);
+
+	return error;
+}
+
 /*
 void update_model(model_t *model, event_t *event, double delta)
 {
@@ -316,10 +498,10 @@ void update_model(model_t *model, event_t *event, double delta)
 	double dens, dens_neigh, press, press_neigh;
 	double dens0 = model->dens0;
 	double k = model->k;
-	double k_neigh = model->k_neigh;
+	double k_neigh =  model->k_neigh;
 	double buffer;
 
-	//pour toute particule part:
+	apply_viscosity_and_gravity(model, delta);
 	//Calcul Viscosité:
 	//pour toute particule neighbor voisine de part tq i<j :
 	copy_vect(&r_ij, &(neighbor->pos));

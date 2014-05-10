@@ -92,6 +92,8 @@ typedef struct model
 	grid_t part_grid;
 	vect_t gravity;
 	double h;
+	double sigma;
+	double beta;
 	
 } model_t;
 
@@ -183,11 +185,18 @@ int append_part_list(part_list_t *cible, particule_t *part);
 int init_grid(grid_t *grid, config_t *conf);
 
 /**
-* \fn int part_hash_grid(grid_t *grid, particule_t *part)
-* \brief Renvoi un hash sous forme d'entier dépendant de la position de la particule.
+* \fn int hash_grid(grid_t *grid, vect_t *pos)
+* \brief Renvoi un hash sous forme d'entier dépendant d'une position.
 *
 * Deux particules assez proches (cela dépend du delta de la grille) auront le même hash.
 * Deux particules éloignées ont de très faibles chances d'avoir le même hash.
+*/
+int hash_grid(grid_t *grid, vect_t *pos);
+
+
+/**
+* \fn int part_hash_grid(grid_t *grid, particule_t *part)
+* \brief Renvoi le hash correspondant à la position de la particule.
 */
 int part_hash_grid(grid_t *grid, particule_t *part);
 
@@ -233,6 +242,10 @@ model_t* init_model(config_t *conf);
 * \brief Ajoute un bloc de particules à la position spécifiée.
 */
 int add_chunk(model_t *model, vect_t *pos);
+
+void apply_gravity(model_t *model, double delta);
+
+int apply_viscosity(model_t *model, double delta);
 
 /**
 * \fn void update_model(model_t *model, event_t *event, double delta)
