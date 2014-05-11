@@ -146,18 +146,21 @@ view_t* init_view(config_t *conf)
 		return NULL;
 	}
 
+    view->part_size = conf->h/2;
+
 	return view;
 }
 
 void update_view(view_t *view, model_t *model, event_t *event)
 {
     glClear(GL_COLOR_BUFFER_BIT);
+    glPointSize(view->part_size);
 
-    glBegin(GL_TRIANGLES);
-        glColor3ub(255,0,0);    glVertex2d(-0.75,-0.75);
-        glColor3ub(0,255,0);    glVertex2d(0,0.75);
-        glColor3ub(0,0,255);    glVertex2d(0.75,-0.75);
+    glBegin(GL_POINTS);
+    glColor3ub(50, 50, 255);
+    glVertex3d(0, 0, 0);
     glEnd();
+    
     glFlush();
     SDL_GL_SwapBuffers();
 }

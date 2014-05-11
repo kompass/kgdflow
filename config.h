@@ -12,6 +12,7 @@ typedef struct config
 	double h;
 	double dens0;
 	double k;
+	double k_neigh;
 	int delay;
 	double sigma;
 	double beta;

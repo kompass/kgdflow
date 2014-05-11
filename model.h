@@ -94,6 +94,9 @@ typedef struct model
 	double h;
 	double sigma;
 	double beta;
+	double dens0;
+	double k;
+	double k_neigh;
 	
 } model_t;
 
