@@ -136,7 +136,11 @@ view_t* init_view(config_t *conf)
 		return NULL;
 	}
 
-    SDL_Init(SDL_INIT_VIDEO);
+    if(SDL_Init(SDL_INIT_VIDEO == -1)
+    {
+        printf("Erreur: erreur d'initialisation de SDL.\n");
+        exit(1);
+    }
 
 	view->screen = SDL_SetVideoMode(conf->screen_width, conf->screen_height, 32, SDL_OPENGL);
 
@@ -148,6 +152,10 @@ view_t* init_view(config_t *conf)
 
     view->part_size = conf->h/2;
 
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(70,(double)xPix/yPix,1,10000000);
+    glEnable(GL_DEPTH_TEST);
 	return view;
 }
 
@@ -160,7 +168,7 @@ void update_view(view_t *view, model_t *model, event_t *event)
     glColor3ub(50, 50, 255);
     glVertex3d(0, 0, 0);
     glEnd();
-    
+
     glFlush();
     SDL_GL_SwapBuffers();
 }
