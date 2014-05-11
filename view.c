@@ -166,7 +166,23 @@ void update_view(view_t *view, model_t *model, event_t *event)
 
     glBegin(GL_POINTS);
     glColor3ub(50, 50, 255);
-    glVertex3d(0, 0, 0);
+    
+    particule_t *part = NULL;
+    int i=0, j=0;
+
+    for(i = 0; i < model->num_chunk; i++)
+    {
+        for(j = 0; j < model->size_of_chunk; j++)
+        {
+            part = &(model->chunk_list[i][j]);
+            // Voilà, là tu parcours toutes les particules,
+            // Pour acceder à sa position, tu as part->pos.x, part->pos.y et part->pos.z
+            // C'est ici que tu dois écrire le code pour afficher une particule (genre appeler une fonction
+            // qui prend un pointeur vers une particule en paramètre et qui l'affiche).
+            glVertex3d(part->pos.x, part->pos.y, part->pos.z);
+        }
+}
+
     glEnd();
 
     glFlush();
