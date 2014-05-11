@@ -553,7 +553,6 @@ int apply_double_intensity_relaxation(model_t *model)
 			press = k * (dens - dens0);
 			press_neigh = k_neigh * dens_neigh;
 
-
 		}
 	}
 

@@ -97,12 +97,31 @@ void get_event(event_t *event, view_t *view)
 
     init_event(event);
 
+    event->key = NO_KEY;
+
     if(SDL_PollEvent(&sdl_event))
     {
         switch(sdl_event.type)
         {
             case SDL_QUIT:
                 event->exit_wanted = 1;
+                break;
+            case SDL_KEYDOWN:
+                switch(event.key.keysym.sym)
+                {
+                    case SDLK_UP:
+                        event->key = KEY_UP;
+                        break;
+                    case SDLK_DOWN:
+                        event->key = KEY_DOWN;
+                        break;
+                    case SDLK_RIGHT:
+                        event->key = KEY_RIGHT;
+                        break;
+                    case SDLK_LEFT:
+                        event->key = KEY_RIGHT;
+                        break;
+                }
                 break;
         }
     }
