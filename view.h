@@ -12,12 +12,13 @@ typedef struct view
 {
 	SDL_Surface *screen;
 	double part_size;
-	vect_t cam;
+	double angle1,angle2,d;
 } view_t;
 
 typedef struct event
 {
 	int exit_wanted;
+	int up, down, left, right, forward, backward;
 
 } event_t;
 
