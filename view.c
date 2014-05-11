@@ -178,13 +178,14 @@ view_t* init_view(config_t *conf)
     view->part_size = conf->h/2;
     view->angle1 = 0;
     view->angle2 = 0;
-    view->d = 2;
+    view->d = 3;
 
     view->cube = glGenLists(1);
+    GLfloat Rose[] = {0.8f, 0.0f, 0.8f, 0.25f};
     glNewList(view->cube, GL_COMPILE);
     glBegin(GL_QUADS);
 
-    glColor4i(100, 0, 0, 45);
+     glColor4fv(Rose);
     glNormal3d(-1.0,0.0,0.0);
     glVertex3d( -1, 1, 1);
     glVertex3d( -1, 1, -1);
@@ -222,8 +223,8 @@ view_t* init_view(config_t *conf)
     glLoadIdentity();
     gluPerspective(70,conf->screen_width/conf->screen_height,1,10000000);
     glEnable(GL_DEPTH_TEST);
+    glClearColor(1, 1, 1, 1);
     return view;
-    >>>>>>> b1fe37b5ba16aabda830d74175683101d90deb68
 }
 
 void update_view(view_t *view, model_t *model, event_t *event)
@@ -256,20 +257,20 @@ void update_view(view_t *view, model_t *model, event_t *event)
         break;
     }
 
-    if(view->angle1 > M_PI)
-        view->angle1 = M_PI;
+    if(view->angle1 > M_PI/2)
+        view->angle1 = M_PI/2;
 
-    if(view->angle1 < -M_PI)
-        view->angle1 = -M_PI;
+    if(view->angle1 < -M_PI/2)
+        view->angle1 = -M_PI/2;
 
     double t = view->d*cos(view->angle1);
     double z = view->d*sin(view->angle1);
     double x = t*cos(view->angle2);
     double y = t*sin(view->angle2);
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) ;
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glPointSize(view->part_size);
-    glMatrixMode( GL_MODELVIEW );
+    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     gluLookAt(x,y,z,0,0,0,0,0,1);
 
@@ -277,7 +278,7 @@ void update_view(view_t *view, model_t *model, event_t *event)
     glBegin(GL_POINTS);
     glColor3ub(50, 50, 255);
     glVertex3d(0,0,0);
-    glVertex3d(0.25,0,0);
+    glVertex3d(0.75,0,0);
     
     particule_t *part = NULL;
     int i=0, j=0;
@@ -293,7 +294,10 @@ void update_view(view_t *view, model_t *model, event_t *event)
 
     glEnd();
     
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glCallList(view->cube);
+    glDisable(GL_BLEND);
 
     glFlush();
     SDL_GL_SwapBuffers();

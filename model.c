@@ -465,7 +465,7 @@ int apply_double_intensity_relaxation(model_t *model)
 	int i = 0, j = 0, l = 0;
 	particule_t *part = NULL, *neighbor = NULL;
 	vect_t pos, delta_x, delta_y, delta_z;
-	vect_t r_ij;
+	vect_t r_ij, u_ij;
 
 	double q = 0, buffer = 0;
 
@@ -599,7 +599,7 @@ int apply_double_intensity_relaxation(model_t *model)
 
 					copy_vect(&r_ij, &(neighbor->pos));
 					sub_vect(&r_ij, &(part->pos));
-					q = length(&r_ij) / h;
+					q = length_vect(&r_ij) / h;
 					copy_vect(&u_ij, &r_ij);
 					normalize_vect(&u_ij);
 				}
