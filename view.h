@@ -12,6 +12,7 @@ typedef struct view
 {
 	SDL_Surface *screen;
 	double part_size;
+	vect_t cam;
 } view_t;
 
 typedef struct event

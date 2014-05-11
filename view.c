@@ -136,7 +136,7 @@ view_t* init_view(config_t *conf)
 		return NULL;
 	}
 
-    if(SDL_Init(SDL_INIT_VIDEO == -1)
+    if(SDL_Init(SDL_INIT_VIDEO) == -1)
     {
         printf("Erreur: erreur d'initialisation de SDL.\n");
         exit(1);
@@ -151,38 +151,40 @@ view_t* init_view(config_t *conf)
 	}
 
     view->part_size = conf->h/2;
+    init_vect(&(view->cam), 1,1,1);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(70,(double)xPix/yPix,1,10000000);
+    gluPerspective(70,conf->screen_width/conf->screen_height,1,10000000);
     glEnable(GL_DEPTH_TEST);
 	return view;
 }
 
 void update_view(view_t *view, model_t *model, event_t *event)
 {
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) ;
     glPointSize(view->part_size);
+    glMatrixMode( GL_MODELVIEW );
+    glLoadIdentity();
+    gluLookAt(view->cam.x,view->cam.y,view->cam.z,0,0,0,0,0,1);
+
 
     glBegin(GL_POINTS);
     glColor3ub(50, 50, 255);
+    glVertex3d(0,0,0);
     
     particule_t *part = NULL;
     int i=0, j=0;
-
+/*
     for(i = 0; i < model->num_chunk; i++)
     {
         for(j = 0; j < model->size_of_chunk; j++)
         {
             part = &(model->chunk_list[i][j]);
-            // Voilà, là tu parcours toutes les particules,
-            // Pour acceder à sa position, tu as part->pos.x, part->pos.y et part->pos.z
-            // C'est ici que tu dois écrire le code pour afficher une particule (genre appeler une fonction
-            // qui prend un pointeur vers une particule en paramètre et qui l'affiche).
             glVertex3d(part->pos.x, part->pos.y, part->pos.z);
         }
 }
-
+*/
     glEnd();
 
     glFlush();
