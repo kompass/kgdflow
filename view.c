@@ -104,8 +104,8 @@ void get_event(event_t *event, view_t *view)
         switch(sdl_event.type)
         {
             case SDL_QUIT:
-                event->exit_wanted = 1;
-                break;
+            event->exit_wanted = 1;
+            break;
         }
     }
 }
@@ -144,24 +144,62 @@ view_t* init_view(config_t *conf)
         exit(1);
     }
 
-	view->screen = SDL_SetVideoMode(conf->screen_width, conf->screen_height, 32, SDL_OPENGL);
+    view->screen = SDL_SetVideoMode(conf->screen_width, conf->screen_height, 32, SDL_OPENGL);
 
-	if(view->screen == NULL)
-	{
-		new_error(SDL_ERROR, SDL_GetError());
-		return NULL;
-	}
+    if(view->screen == NULL)
+    {
+      new_error(SDL_ERROR, SDL_GetError());
+      return NULL;
+  }
 
-    view->part_size = conf->h/2;
-    view->angle1 = 0;
-    view->angle2 = 0;
-    view->d = 1;
+  view->part_size = conf->h/2;
+  view->angle1 = 0;
+  view->angle2 = 0;
+  view->d = 1;
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(70,conf->screen_width/conf->screen_height,1,10000000);
-    glEnable(GL_DEPTH_TEST);
-	return view;
+  view->cube = glGenLists(1);
+  glNewList(view->cube, GL_COMPILE);
+  glBegin(GL_QUADS);
+
+  glColor4i(100, 0, 0, 45);
+  glNormal3d(-1.0,0.0,0.0);
+  glVertex3d( -1, 1, 1);
+  glVertex3d( -1, 1, -1);
+  glVertex3d( -1, -1, -1);
+  glVertex3d( -1, -1, 1);
+  glNormal3d(0.0,1.0,0.0);
+  glVertex3d( -1, 1, 1);
+  glVertex3d( 1, 1, 1);
+  glVertex3d( 1, 1, -1);
+  glVertex3d( -1, 1, -1);
+  glNormal3d(0.0,-1.0,0.0);
+  glVertex3d( -1, -1, 1);
+  glVertex3d( -1, -1, -1);
+  glVertex3d( 1, -1, -1);
+  glVertex3d( 1, -1, 1);
+  glNormal3d(0.0,0.0,-1.0);
+  glVertex3d( 1, 1, -1);
+  glVertex3d( 1, -1, -1);
+  glVertex3d( -1, -1, -1);
+  glVertex3d( -1, 1, -1);
+  glNormal3d(1.0,0.0,0.0);
+  glVertex3d( 1, 1, 1);
+  glVertex3d( 1, -1, 1);
+  glVertex3d( 1, -1, -1);
+  glVertex3d( 1, 1, -1);
+  glNormal3d(0.0,0.0,1.0);
+  glVertex3d(-1, 1, 1);
+  glVertex3d(-1, -1, 1);
+  glVertex3d( 1, -1, 1);
+  glVertex3d( 1, 1, 1);
+  glEnd();
+  glEndList();
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluPerspective(70,conf->screen_width/conf->screen_height,1,10000000);
+  glEnable(GL_DEPTH_TEST);
+  return view;
 }
 
 void update_view(view_t *view, model_t *model, event_t *event)
@@ -222,8 +260,9 @@ void update_view(view_t *view, model_t *model, event_t *event)
         }
     }
 
-
     glEnd();
+    
+    glCallList(view->cube);
 
     glFlush();
     SDL_GL_SwapBuffers();

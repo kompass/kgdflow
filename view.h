@@ -21,6 +21,7 @@ typedef struct view
 	SDL_Surface *screen;
 	double part_size;
 	double angle1,angle2,d;
+	GLuint cube;
 } view_t;
 
 typedef struct event
