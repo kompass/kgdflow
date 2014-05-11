@@ -106,7 +106,6 @@ void get_event(event_t *event, view_t *view)
         switch(sdl_event.type)
         {
             case SDL_QUIT:
-            <<<<<<< HEAD
             event->exit_wanted = 1;
             break;
             case SDL_KEYDOWN:
@@ -129,10 +128,6 @@ void get_event(event_t *event, view_t *view)
                 break;
             }
             break;
-            =======
-            event->exit_wanted = 1;
-            break;
-            >>>>>>> b1fe37b5ba16aabda830d74175683101d90deb68
         }
     }
 }
