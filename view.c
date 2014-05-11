@@ -2,6 +2,8 @@
 
 #include "error.h"
 
+#include <math.h>
+
 /*
 Uint32 get_pixel(view_t *view, int x, int y)
 {
@@ -170,7 +172,9 @@ view_t* init_view(config_t *conf)
 	}
 
     view->part_size = conf->h/2;
-    init_vect(&(view->cam), 1,1,1);
+    view->angle1 = 0;
+    view->angle2 = 0;
+    view->d = 1;
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -181,20 +185,53 @@ view_t* init_view(config_t *conf)
 
 void update_view(view_t *view, model_t *model, event_t *event)
 {
+    switch(event->key)
+    {
+        case KEY_UP: 
+        view->angle1++;
+        break;
+
+        case KEY_DOWN:
+        view->angle1--;
+        break;
+
+        case KEY_LEFT:
+        view->angle2++;
+        break;
+
+        case KEY_RIGHT:
+        view->angle2--;
+        break;
+
+        case KEY_FORWARD:
+        view->d++;
+        break;
+
+        case KEY_BACKWARD:
+        view->d--;
+        break;
+    }
+
+    double t = view->d*cos(view->angle2);
+    double y = view->d*sin(view->angle2);
+    double x = t*cos(view->angle1);
+    double z = t*sin(view->angle1);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) ;
     glPointSize(view->part_size);
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
-    gluLookAt(view->cam.x,view->cam.y,view->cam.z,0,0,0,0,0,1);
+    gluLookAt(x,y,z,0,0,0,0,0,1);
 
 
     glBegin(GL_POINTS);
     glColor3ub(50, 50, 255);
     glVertex3d(0,0,0);
+    glVertex3d(0.25,0,0);
     
     particule_t *part = NULL;
     int i=0, j=0;
-/*
+
     for(i = 0; i < model->num_chunk; i++)
     {
         for(j = 0; j < model->size_of_chunk; j++)
@@ -202,8 +239,9 @@ void update_view(view_t *view, model_t *model, event_t *event)
             part = &(model->chunk_list[i][j]);
             glVertex3d(part->pos.x, part->pos.y, part->pos.z);
         }
-}
-*/
+    }
+
+
     glEnd();
 
     glFlush();

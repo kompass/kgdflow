@@ -8,16 +8,25 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+#define NO_KEY 0 
+#define KEY_UP 1
+#define KEY_DOWN 2
+#define KEY_LEFT 3
+#define KEY_RIGHT 4
+#define KEY_FORWARD 5
+#define KEY_BACKWARD 6
+
 typedef struct view
 {
 	SDL_Surface *screen;
 	double part_size;
-	vect_t cam;
+	double angle1,angle2,d;
 } view_t;
 
 typedef struct event
 {
 	int exit_wanted;
+	int key;
 
 } event_t;
 
