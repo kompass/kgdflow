@@ -553,6 +553,57 @@ int apply_double_intensity_relaxation(model_t *model)
 			press = k * (dens - dens0);
 			press_neigh = k_neigh * dens_neigh;
 
+			for(l = 0; l < 7; l++)
+			{
+				switch(l)
+				{
+					case 0:
+						copy_vect(&pos, &(part->pos));
+						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						break;
+					case 1:
+						copy_vect(&pos, &(part->pos));
+						add_vect(&pos, &delta_x);
+						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						break;
+					case 2:
+						copy_vect(&pos, &(part->pos));
+						add_vect(&pos, &delta_y);
+						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						break;
+					case 3:
+						copy_vect(&pos, &(part->pos));
+						add_vect(&pos, &delta_z);
+						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						break;
+					case 4:
+						copy_vect(&pos, &(part->pos));
+						sub_vect(&pos, &delta_x);
+						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						break;
+					case 5:
+						copy_vect(&pos, &(part->pos));
+						sub_vect(&pos, &delta_y);
+						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						break;
+					case 6:
+						copy_vect(&pos, &(part->pos));
+						sub_vect(&pos, &delta_z);
+						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						break;
+				}
+
+				while(cell != NULL)
+				{
+					neighbor = cell->part;
+
+					copy_vect(&r_ij, &(neighbor->pos));
+					sub_vect(&r_ij, &(part->pos));
+					q = length(&r_ij) / h;
+					copy_vect(&u_ij, &r_ij);
+					normalize_vect(&u_ij);
+				}
+			}
 		}
 	}
 

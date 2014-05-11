@@ -109,7 +109,7 @@ void get_event(event_t *event, view_t *view)
                 event->exit_wanted = 1;
                 break;
             case SDL_KEYDOWN:
-                switch(event.key.keysym.sym)
+                switch(sdl_event.key.keysym.sym)
                 {
                     case SDLK_UP:
                         event->key = KEY_UP;
@@ -121,7 +121,10 @@ void get_event(event_t *event, view_t *view)
                         event->key = KEY_RIGHT;
                         break;
                     case SDLK_LEFT:
-                        event->key = KEY_RIGHT;
+                        event->key = KEY_LEFT;
+                        break;
+                    default:
+                        event->key = NO_KEY;
                         break;
                 }
                 break;
@@ -164,6 +167,7 @@ view_t* init_view(config_t *conf)
     }
 
 	view->screen = SDL_SetVideoMode(conf->screen_width, conf->screen_height, 32, SDL_OPENGL);
+    SDL_EnableKeyRepeat(10, 10);
 
 	if(view->screen == NULL)
 	{
@@ -174,7 +178,7 @@ view_t* init_view(config_t *conf)
     view->part_size = conf->h/2;
     view->angle1 = 0;
     view->angle2 = 0;
-    view->d = 1;
+    view->d = 2;
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -185,22 +189,23 @@ view_t* init_view(config_t *conf)
 
 void update_view(view_t *view, model_t *model, event_t *event)
 {
+    const double delta = M_PI/60;
     switch(event->key)
     {
         case KEY_UP: 
-        view->angle1++;
+        view->angle1 += delta;
         break;
 
         case KEY_DOWN:
-        view->angle1--;
+        view->angle1 -= delta;
         break;
 
         case KEY_LEFT:
-        view->angle2++;
+        view->angle2 += delta;
         break;
 
         case KEY_RIGHT:
-        view->angle2--;
+        view->angle2 -= delta;
         break;
 
         case KEY_FORWARD:
@@ -212,10 +217,16 @@ void update_view(view_t *view, model_t *model, event_t *event)
         break;
     }
 
-    double t = view->d*cos(view->angle2);
-    double y = view->d*sin(view->angle2);
-    double x = t*cos(view->angle1);
-    double z = t*sin(view->angle1);
+    if(view->angle1 > M_PI)
+        view->angle1 = M_PI;
+
+    if(view->angle1 < -M_PI)
+        view->angle1 = -M_PI;
+
+    double t = view->d*cos(view->angle1);
+    double z = view->d*sin(view->angle1);
+    double x = t*cos(view->angle2);
+    double y = t*sin(view->angle2);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) ;
     glPointSize(view->part_size);
