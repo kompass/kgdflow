@@ -106,28 +106,33 @@ void get_event(event_t *event, view_t *view)
         switch(sdl_event.type)
         {
             case SDL_QUIT:
-                event->exit_wanted = 1;
-                break;
+            <<<<<<< HEAD
+            event->exit_wanted = 1;
+            break;
             case SDL_KEYDOWN:
-                switch(sdl_event.key.keysym.sym)
-                {
-                    case SDLK_UP:
-                        event->key = KEY_UP;
-                        break;
-                    case SDLK_DOWN:
-                        event->key = KEY_DOWN;
-                        break;
-                    case SDLK_RIGHT:
-                        event->key = KEY_RIGHT;
-                        break;
-                    case SDLK_LEFT:
-                        event->key = KEY_LEFT;
-                        break;
-                    default:
-                        event->key = NO_KEY;
-                        break;
-                }
+            switch(sdl_event.key.keysym.sym)
+            {
+                case SDLK_UP:
+                event->key = KEY_UP;
                 break;
+                case SDLK_DOWN:
+                event->key = KEY_DOWN;
+                break;
+                case SDLK_RIGHT:
+                event->key = KEY_RIGHT;
+                break;
+                case SDLK_LEFT:
+                event->key = KEY_LEFT;
+                break;
+                default:
+                event->key = NO_KEY;
+                break;
+            }
+            break;
+            =======
+            event->exit_wanted = 1;
+            break;
+            >>>>>>> b1fe37b5ba16aabda830d74175683101d90deb68
         }
     }
 }
@@ -166,25 +171,64 @@ view_t* init_view(config_t *conf)
         exit(1);
     }
 
-	view->screen = SDL_SetVideoMode(conf->screen_width, conf->screen_height, 32, SDL_OPENGL);
+    view->screen = SDL_SetVideoMode(conf->screen_width, conf->screen_height, 32, SDL_OPENGL);
     SDL_EnableKeyRepeat(10, 10);
 
-	if(view->screen == NULL)
-	{
-		new_error(SDL_ERROR, SDL_GetError());
-		return NULL;
-	}
+    if(view->screen == NULL)
+    {
+        new_error(SDL_ERROR, SDL_GetError());
+        return NULL;
+    }
 
     view->part_size = conf->h/2;
     view->angle1 = 0;
     view->angle2 = 0;
     view->d = 2;
 
+    view->cube = glGenLists(1);
+    glNewList(view->cube, GL_COMPILE);
+    glBegin(GL_QUADS);
+
+    glColor4i(100, 0, 0, 45);
+    glNormal3d(-1.0,0.0,0.0);
+    glVertex3d( -1, 1, 1);
+    glVertex3d( -1, 1, -1);
+    glVertex3d( -1, -1, -1);
+    glVertex3d( -1, -1, 1);
+    glNormal3d(0.0,1.0,0.0);
+    glVertex3d( -1, 1, 1);
+    glVertex3d( 1, 1, 1);
+    glVertex3d( 1, 1, -1);
+    glVertex3d( -1, 1, -1);
+    glNormal3d(0.0,-1.0,0.0);
+    glVertex3d( -1, -1, 1);
+    glVertex3d( -1, -1, -1);
+    glVertex3d( 1, -1, -1);
+    glVertex3d( 1, -1, 1);
+    glNormal3d(0.0,0.0,-1.0);
+    glVertex3d( 1, 1, -1);
+    glVertex3d( 1, -1, -1);
+    glVertex3d( -1, -1, -1);
+    glVertex3d( -1, 1, -1);
+    glNormal3d(1.0,0.0,0.0);
+    glVertex3d( 1, 1, 1);
+    glVertex3d( 1, -1, 1);
+    glVertex3d( 1, -1, -1);
+    glVertex3d( 1, 1, -1);
+    glNormal3d(0.0,0.0,1.0);
+    glVertex3d(-1, 1, 1);
+    glVertex3d(-1, -1, 1);
+    glVertex3d( 1, -1, 1);
+    glVertex3d( 1, 1, 1);
+    glEnd();
+    glEndList();
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(70,conf->screen_width/conf->screen_height,1,10000000);
     glEnable(GL_DEPTH_TEST);
-	return view;
+    return view;
+    >>>>>>> b1fe37b5ba16aabda830d74175683101d90deb68
 }
 
 void update_view(view_t *view, model_t *model, event_t *event)
@@ -252,8 +296,9 @@ void update_view(view_t *view, model_t *model, event_t *event)
         }
     }
 
-
     glEnd();
+    
+    glCallList(view->cube);
 
     glFlush();
     SDL_GL_SwapBuffers();
