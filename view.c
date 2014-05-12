@@ -185,7 +185,7 @@ view_t* init_view(config_t *conf)
     glNewList(view->cube, GL_COMPILE);
     glBegin(GL_QUADS);
 
-     glColor4fv(Rose);
+    glColor4fv(Rose);
     glNormal3d(-1.0,0.0,0.0);
     glVertex3d( -1, 1, 1);
     glVertex3d( -1, 1, -1);
@@ -299,8 +299,29 @@ void update_view(view_t *view, model_t *model, event_t *event)
     glCallList(view->cube);
     glDisable(GL_BLEND);
 
-    glFlush();
-    SDL_GL_SwapBuffers();
+    glDisable(GL_DEPTH_TEST);
+
+    glMatrixMode(GL_PROJECTION);
+glPushMatrix(); // on enregistre les paramètres pour la 3D
+glLoadIdentity();
+gluOrtho2D(-600, 200, 0, 500);
+
+glMatrixMode(GL_MODELVIEW);
+glLoadIdentity();
+glBegin(GL_POINTS);
+
+  // tes dessins 2D
+glVertex2d(0,10);
+
+glEnd();
+
+glMatrixMode(GL_PROJECTION);
+glPopMatrix(); // on restitue les paramètres pour la 3D
+
+glEnable(GL_DEPTH_TEST);
+
+glFlush();
+SDL_GL_SwapBuffers();
 }
 
 void close_view(view_t *view)
