@@ -148,11 +148,11 @@ config_t* parse_args(int argc, char *argv[])
 
 	new_conf->screen_height = 500;
 	new_conf->screen_width = 800;
-	new_conf->grid_delta = 10;
+	new_conf->grid_delta = 0.5;
 	new_conf->grid_size = 100;
 	new_conf->size_of_chunk = 10;
 	new_conf->gravity = 10;
-	new_conf->h = 10;
+	new_conf->h = 0.1;
 	new_conf->dens0 = 10;
 	new_conf->k = 10;
 	new_conf->delay = 40;

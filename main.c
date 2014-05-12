@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	init_event(&event);
 
 	vect_t chunk_pos;
-	init_vect(&chunk_pos, -1, -1, -1);
+	init_vect(&chunk_pos, 0, 0, 0);
 	add_chunk(model, &chunk_pos);
 
 	while(!event.exit_wanted)

@@ -319,7 +319,6 @@ int add_chunk(model_t *model, vect_t *pos)
 
 	for(i = 0; i < soc; i++)
 	{
-		
 		for(j = 0; j < soc; j++)
 		{
 			for(k = 0; k < soc; k++)

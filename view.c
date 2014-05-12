@@ -175,7 +175,7 @@ view_t* init_view(config_t *conf)
         return NULL;
     }
 
-    view->part_size = conf->h/2;
+    view->part_size = 4;
     view->angle1 = 0;
     view->angle2 = 0;
     view->d = 3;
