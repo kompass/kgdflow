@@ -180,11 +180,24 @@ view_t* init_view(config_t *conf)
     view->angle2 = 0;
     view->d = 3;
 
+    glColorMaterial (GL_FRONT_AND_BACK, GL_EMISSION);
+    glEnable (GL_COLOR_MATERIAL);
+    GLfloat light_direction[] = {-1.0f, -1.0f, 0.f};
+    GLfloat dark_color[] = {0.0f,0.0f,0.0f,0.5f};
+    GLfloat white_color[] = {1.0f,1.0f,1.0f,0.5f};
+    glLightfv(GL_LIGHT0, GL_AMBIENT, dark_color);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, white_color);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, white_color);
+    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, light_direction);
+
     view->cube = glGenLists(1);
     GLfloat cube_color[] = {1, 1, 1, 0.05};
     glNewList(view->cube, GL_COMPILE);
     glBegin(GL_QUADS);
 
+    glColorMaterial (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, dark_color);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, white_color);
     glColor4fv(cube_color);
     glNormal3d(-1.0,0.0,0.0);
     glVertex3d( -1, 1, 1);
@@ -223,14 +236,6 @@ view_t* init_view(config_t *conf)
     glLoadIdentity();
     gluPerspective(70,conf->screen_width/conf->screen_height,1,10000000);
     glEnable(GL_DEPTH_TEST);
-
-    GLfloat light_direction[] = {-1.0f, -1.0f, 0.f};
-    GLfloat dark_color[] = {0.0f,0.0f,0.0f,0.1f};
-    GLfloat white_color[] = {1.0f,1.0f,1.0f,0.1f};
-    glLightfv(GL_LIGHT0, GL_AMBIENT, dark_color);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, white_color);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, white_color);
-    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, light_direction);
     
     glClearColor(0.129, 0.169, 0.133, 1);
     return view;
@@ -308,7 +313,7 @@ void update_view(view_t *view, model_t *model, event_t *event)
 
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
-    //glDepthFunc(GL_EQUAL);
+    glDepthFunc(GL_EQUAL);
     glCallList(view->cube);
     glDepthFunc(GL_LESS);
     glDisable(GL_LIGHTING);
