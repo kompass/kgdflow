@@ -181,11 +181,11 @@ view_t* init_view(config_t *conf)
     view->d = 3;
 
     view->cube = glGenLists(1);
-    GLfloat Rose[] = {0.99f, 0.99f, 0.99f, 0.50f};
+    GLfloat cube_color[] = {1, 1, 1, 0.05};
     glNewList(view->cube, GL_COMPILE);
     glBegin(GL_QUADS);
 
-     glColor4fv(Rose);
+     glColor4fv(cube_color);
     glNormal3d(-1.0,0.0,0.0);
     glVertex3d( -1, 1, 1);
     glVertex3d( -1, 1, -1);
@@ -223,6 +223,15 @@ view_t* init_view(config_t *conf)
     glLoadIdentity();
     gluPerspective(70,conf->screen_width/conf->screen_height,1,10000000);
     glEnable(GL_DEPTH_TEST);
+
+    GLfloat light_direction[] = {-1.0f, -1.0f, 0.f};
+    GLfloat dark_color[] = {0.0f,0.0f,0.0f,0.1f};
+    GLfloat white_color[] = {1.0f,1.0f,1.0f,0.1f};
+    glLightfv(GL_LIGHT0, GL_AMBIENT, dark_color);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, white_color);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, white_color);
+    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, light_direction);
+    
     glClearColor(0.129, 0.169, 0.133, 1);
     return view;
 }
@@ -276,16 +285,15 @@ void update_view(view_t *view, model_t *model, event_t *event)
 
 
     glBegin(GL_POINTS);
-    glColor3ub(50, 50, 255);
-    glVertex3d(0,0,0);
-    glVertex3d(0.75,0,0);
+    glColor3ub(255, 0, 0);
     
     particule_t *part = NULL;
     int i=0, j=0;
 
     for(i = 0; i < model->num_chunk; i++)
     {
-        for(j = 0; j < model->size_of_chunk; j++)
+        int size = model->size_of_chunk;
+        for(j = 0; j < size*size*size; j++)
         {
             part = &(model->chunk_list[i][j]);
             glVertex3d(part->pos.x, part->pos.y, part->pos.z);
@@ -297,6 +305,14 @@ void update_view(view_t *view, model_t *model, event_t *event)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glCallList(view->cube);
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    //glDepthFunc(GL_EQUAL);
+    glCallList(view->cube);
+    glDepthFunc(GL_LESS);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHT0);
     glDisable(GL_BLEND);
 
     glFlush();
