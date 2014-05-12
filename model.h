@@ -66,6 +66,8 @@ typedef struct part_list
 * cas bien inférieure à O(n), même dans le pire des cas en pratique (car peut supposer avec quasi
 * certitude que durant la similation, le nombre de particules dans un espace donné est limité et même,
 * avec de bons parametrages, petit).
+*
+* La grille partitionne un cube de size*delta unités de coté.
 */
 typedef struct grid
 {

@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 	{
 		delta_time = temporize(conf);
 		get_event(&event, view);
-		error = update_model(model, &event, delta_time);
+		//error = update_model(model, &event, delta_time);
 
 		if(error)
 		{
