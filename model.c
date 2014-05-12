@@ -81,7 +81,8 @@ void append_part_cell_list(part_list_t *cible, part_list_cell_t *cell)
 {
 	cell->prev = NULL;
 	cell->next = cible->first;
-	cible->first->prev = cell;
+	if(cible->first != NULL)
+		cible->first->prev = cell;
 	cible->first = cell;
 	cible->length++;
 }
@@ -119,7 +120,7 @@ int init_grid(grid_t *grid, config_t *conf)
 	}
 
 	int i = 0;
-	for(i = 0; i < grid->size; i++)
+	for(i = 0; i < size*size*size; i++)
 		init_part_list(&(grid->map[i]));
 
 	return 0;
@@ -148,6 +149,7 @@ model_t* init_model(config_t *conf)
 		return NULL;
 	}
 
+	model->size_of_chunk = conf->size_of_chunk;
 	model->beta = conf->beta;
 	model->sigma = conf->sigma;
 	model->dens0 = conf->dens0;
@@ -325,6 +327,7 @@ int add_chunk(model_t *model, vect_t *pos)
 				init_vect(&(new_chunk[(i*soc + j)* soc + k].speed), 0, 0, 0);
 				init_vect(&(new_chunk[(i*soc + j)* soc + k].pos),
 					pos->x + (double) i * h, pos->y + (double) j * h, pos->z + (double) k * h);
+				insert_part_grid(&(model->part_grid), &(new_chunk[(i*soc + j)* soc + k]));
 			}
 		}
 	}
@@ -364,6 +367,7 @@ int apply_viscosity(model_t *model, double delta)
 	particule_t *part = NULL, *neighbor = NULL;
 	vect_t viscosity_action, r_ij, u_ij, v_ji;
 	double q, u;
+	part_list_t *list = NULL;
 	part_list_cell_t *cell = NULL;
 	vect_t pos, delta_x, delta_y, delta_z;
 
@@ -391,7 +395,11 @@ int apply_viscosity(model_t *model, double delta)
 				{
 					case 0:
 						copy_vect(&pos, &(part->pos));
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
+
 						//On ignore les particules précédant part
 						while(cell->part != part)
 						{
@@ -409,17 +417,26 @@ int apply_viscosity(model_t *model, double delta)
 					case 1:
 						copy_vect(&pos, &(part->pos));
 						add_vect(&pos, &delta_x);
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 					case 2:
 						copy_vect(&pos, &(part->pos));
 						add_vect(&pos, &delta_y);
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 					case 3:
 						copy_vect(&pos, &(part->pos));
 						add_vect(&pos, &delta_z);
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 				}
 
@@ -460,12 +477,13 @@ int apply_viscosity(model_t *model, double delta)
 	return 0;
 }
 
-int apply_double_intensity_relaxation(model_t *model)
+int apply_double_intensity_relaxation(model_t *model, double delta)
 {
 	int i = 0, j = 0, l = 0;
 	particule_t *part = NULL, *neighbor = NULL;
 	vect_t pos, delta_x, delta_y, delta_z;
-	vect_t r_ij, u_ij;
+	vect_t r_ij, u_ij, relax_action;
+	part_list_t *list = NULL;
 
 	double q = 0, buffer = 0;
 
@@ -499,37 +517,58 @@ int apply_double_intensity_relaxation(model_t *model)
 				{
 					case 0:
 						copy_vect(&pos, &(part->pos));
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 					case 1:
 						copy_vect(&pos, &(part->pos));
 						add_vect(&pos, &delta_x);
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 					case 2:
 						copy_vect(&pos, &(part->pos));
 						add_vect(&pos, &delta_y);
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 					case 3:
 						copy_vect(&pos, &(part->pos));
 						add_vect(&pos, &delta_z);
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 					case 4:
 						copy_vect(&pos, &(part->pos));
 						sub_vect(&pos, &delta_x);
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 					case 5:
 						copy_vect(&pos, &(part->pos));
 						sub_vect(&pos, &delta_y);
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 					case 6:
 						copy_vect(&pos, &(part->pos));
 						sub_vect(&pos, &delta_z);
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 				}
 
@@ -547,6 +586,8 @@ int apply_double_intensity_relaxation(model_t *model)
 						dens += buffer * buffer;
 						dens_neigh += buffer * buffer * buffer;
 					}
+
+					cell = cell->next;
 				}
 			}
 
@@ -559,37 +600,58 @@ int apply_double_intensity_relaxation(model_t *model)
 				{
 					case 0:
 						copy_vect(&pos, &(part->pos));
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 					case 1:
 						copy_vect(&pos, &(part->pos));
 						add_vect(&pos, &delta_x);
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 					case 2:
 						copy_vect(&pos, &(part->pos));
 						add_vect(&pos, &delta_y);
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 					case 3:
 						copy_vect(&pos, &(part->pos));
 						add_vect(&pos, &delta_z);
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 					case 4:
 						copy_vect(&pos, &(part->pos));
 						sub_vect(&pos, &delta_x);
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 					case 5:
 						copy_vect(&pos, &(part->pos));
 						sub_vect(&pos, &delta_y);
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 					case 6:
 						copy_vect(&pos, &(part->pos));
 						sub_vect(&pos, &delta_z);
-						cell = get_same_case_list(&(model->part_grid), &pos)->first;
+						list = get_same_case_list(&(model->part_grid), &pos);
+						if(list == NULL)
+							return 1;
+						cell = list->first;
 						break;
 				}
 
@@ -602,6 +664,19 @@ int apply_double_intensity_relaxation(model_t *model)
 					q = length_vect(&r_ij) / h;
 					copy_vect(&u_ij, &r_ij);
 					normalize_vect(&u_ij);
+
+					if(q < 1)
+					{
+						copy_vect(&relax_action, &u_ij);
+						buffer = 1 - q;
+						mul_vect(&relax_action,
+							delta*delta*(press*buffer + press_neigh*buffer*buffer));
+						mul_vect(&relax_action, 1/2);
+						add_vect(&(neighbor->pos), &relax_action);
+						sub_vect(&(part->pos), &relax_action);
+					}
+
+					cell = cell->next;
 				}
 			}
 		}
@@ -617,6 +692,8 @@ int update_model(model_t *model, event_t *event, double delta)
 	apply_gravity(model, delta);
 
 	error = apply_viscosity(model, delta);
+
+	error |= apply_double_intensity_relaxation(model, delta);
 
 	return error;
 }

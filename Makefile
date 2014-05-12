@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-W -Wall -Wno-unused-parameter
+CFLAGS=-W -Wall -Wno-unused-parameter -g
 LDFLAGS= -lSDL -lGL -lGLU
 EXEC=kgdflow
 

@@ -20,6 +20,7 @@
 #include "config.h"
 #include "view.h"
 #include "model.h"
+#include "error.h"
 
 /**
 * \fn int main(int argc, char *argv[])
@@ -36,6 +37,9 @@ int main(int argc, char *argv[])
 {
 	config_t *conf = parse_args(argc, argv);
 
+	int error = 0;
+	error_t *error_cell = NULL;
+
 	if(conf == NULL)
 	{
 		return 1;
@@ -50,11 +54,28 @@ int main(int argc, char *argv[])
 
 	init_event(&event);
 
+	vect_t chunk_pos;
+	init_vect(&chunk_pos, -1, -1, -1);
+	add_chunk(model, &chunk_pos);
+
 	while(!event.exit_wanted)
 	{
 		delta_time = temporize(conf);
 		get_event(&event, view);
-		//update_model(model, event, delta_time);
+		error = update_model(model, &event, delta_time);
+
+		if(error)
+		{
+			error_cell = get_error_list();
+
+			while(error_cell != NULL)
+			{
+				printf("%s\n", error_cell->comment);
+				error_cell = error_cell->next;
+			}
+			return 1;
+		}
+
 		update_view(view, model, &event);
 	}
 

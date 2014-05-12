@@ -3,6 +3,8 @@
 
 #include "config.h"
 
+typedef struct event event_t;
+
 /**
 * \struct vect_t
 * \brief Vecteur dans l'espace en 3 dimmensions
@@ -250,11 +252,13 @@ void apply_gravity(model_t *model, double delta);
 
 int apply_viscosity(model_t *model, double delta);
 
+int apply_double_intensity_relaxation(model_t *model, double delta);
+
 /**
 * \fn void update_model(model_t *model, event_t *event, double delta)
 *
 */
-//void update_model(model_t *model, event_t *event, double delta);
+int update_model(model_t *model, event_t *event, double delta);
 
 /**
 * \fn void close_model(model_t *model)

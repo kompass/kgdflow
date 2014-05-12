@@ -5,6 +5,7 @@
 #include <getopt.h>
 #include <string.h>
 #include "error.h"
+#include "ini.h"
 
 void print_help(char *program_name, int exit_code)
 {
@@ -148,7 +149,7 @@ config_t* parse_args(int argc, char *argv[])
 	new_conf->screen_height = 500;
 	new_conf->screen_width = 800;
 	new_conf->grid_delta = 10;
-	new_conf->grid_size = 10;
+	new_conf->grid_size = 1000;
 	new_conf->size_of_chunk = 10;
 	new_conf->gravity = 10;
 	new_conf->h = 10;
