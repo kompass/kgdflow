@@ -181,7 +181,7 @@ view_t* init_view(config_t *conf)
     view->d = 3;
 
     view->cube = glGenLists(1);
-    GLfloat Rose[] = {0.8f, 0.0f, 0.8f, 0.25f};
+    GLfloat Rose[] = {0.99f, 0.99f, 0.99f, 0.50f};
     glNewList(view->cube, GL_COMPILE);
     glBegin(GL_QUADS);
 
@@ -223,7 +223,7 @@ view_t* init_view(config_t *conf)
     glLoadIdentity();
     gluPerspective(70,conf->screen_width/conf->screen_height,1,10000000);
     glEnable(GL_DEPTH_TEST);
-    glClearColor(1, 1, 1, 1);
+    glClearColor(0.129, 0.169, 0.133, 1);
     return view;
 }
 
