@@ -4,89 +4,6 @@
 
 #include <math.h>
 
-/*
-Uint32 get_pixel(view_t *view, int x, int y)
-{
-    int bpp = view->screen->format->BytesPerPixel;
-    Uint8 *p = (Uint8 *)view->screen->pixels + y * view->screen->pitch + x * bpp;
-
-    switch(bpp) {
-    case 1:
-        return *p;
-        break;
-
-    case 2:
-        return *(Uint16 *)p;
-        break;
-
-    case 3:
-        if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
-            return p[0] << 16 | p[1] << 8 | p[2];
-        else
-            return p[0] | p[1] << 8 | p[2] << 16;
-        break;
-
-    case 4:
-        return *(Uint32 *)p;
-        break;
-
-    default:
-        return 0;
-    }
-}
-
-void set_pixel(view_t *view, int x, int y, Uint32 pixel)
-{
-    int bpp = view->screen->format->BytesPerPixel;
-
-    Uint8 *p = (Uint8 *)view->screen->pixels + y * view->screen->pitch + x * bpp;
-
-    switch(bpp) {
-    case 1:
-        *p = pixel;
-        break;
-
-    case 2:
-        *(Uint16 *)p = pixel;
-        break;
-
-    case 3:
-        if(SDL_BYTEORDER == SDL_BIG_ENDIAN) {
-            p[0] = (pixel >> 16) & 0xff;
-            p[1] = (pixel >> 8) & 0xff;
-            p[2] = pixel & 0xff;
-        } else {
-            p[0] = pixel & 0xff;
-            p[1] = (pixel >> 8) & 0xff;
-            p[2] = (pixel >> 16) & 0xff;
-        }
-        break;
-
-    case 4:
-        *(Uint32 *)p = pixel;
-        break;
-    }
-}
-
-void set_transp_pixel(view_t *view, int x, int y, Uint32 pixel, int coef)
-{
-	Uint32 old_pixel = get_pixel(view, x, y);
-	Uint8 *old_pixel_colors = (Uint8 *) &old_pixel;
-	Uint8 *pixel_colors = (Uint8 *) &pixel;
-
-	if(coef < 0)
-		coef = 0;
-
-	if(coef > 255)
-		coef = 255;
-
-	int i = 0;
-	for(i = 0; i < 3; i++)
-		pixel_colors[i] = (coef*pixel_colors[i] + (255 - coef)*old_pixel_colors[i])/255;
-
-	set_pixel(view, x, y, pixel);
-}
-*/
 
 void init_vect2d(vect2d_t *vect, int x, int y)
 {
@@ -205,17 +122,33 @@ void get_event(event_t *event, view_t *view)
 double temporize(config_t *conf)
 {
     static Uint32 ticks = 0;
+    static int fps = 0;
+    static int seconds = 0;
     Uint32 new_ticks = 0;
     double real_delay = 0;
 
+    //Initialisation des variables static à leur première utilisation
     if(ticks == 0)
+    {
         ticks = SDL_GetTicks();
+        seconds = ticks / 1000;
+    }
 
-    SDL_Delay(conf->delay);
+    int wanted_delay = conf->delay - (SDL_GetTicks() - ticks);
+    if(wanted_delay > 0)
+        SDL_Delay(wanted_delay);
 
     new_ticks = SDL_GetTicks();
     real_delay = (double) (new_ticks - ticks) / 1000;
     ticks = new_ticks;
+
+    fps++;
+    if(ticks / 1000 - seconds >= 1)
+    {
+        printf("FPS: %i\n", fps);
+        fps = 0;
+        seconds = ticks / 1000;
+    }
 
     return real_delay; 
 }
@@ -290,34 +223,34 @@ view_t* init_view(config_t *conf)
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, white_color);
     glColor4fv(cube_color);
     glNormal3d(-1.0,0.0,0.0);
-    glVertex3d( -1, 1, 1);
-    glVertex3d( -1, 1, -1);
-    glVertex3d( -1, -1, -1);
-    glVertex3d( -1, -1, 1);
+    glVertex3d( 0, 1, 1);
+    glVertex3d( 0, 1, 0);
+    glVertex3d( 0, 0, 0);
+    glVertex3d( 0, 0, 1);
     glNormal3d(0.0,1.0,0.0);
-    glVertex3d( -1, 1, 1);
+    glVertex3d( 0, 1, 1);
     glVertex3d( 1, 1, 1);
-    glVertex3d( 1, 1, -1);
-    glVertex3d( -1, 1, -1);
+    glVertex3d( 1, 1, 0);
+    glVertex3d( 0, 1, 0);
     glNormal3d(0.0,-1.0,0.0);
-    glVertex3d( -1, -1, 1);
-    glVertex3d( -1, -1, -1);
-    glVertex3d( 1, -1, -1);
-    glVertex3d( 1, -1, 1);
+    glVertex3d( 0, 0, 1);
+    glVertex3d( 0, 0, 0);
+    glVertex3d( 1, 0, 0);
+    glVertex3d( 1, 0, 1);
     glNormal3d(0.0,0.0,-1.0);
-    glVertex3d( 1, 1, -1);
-    glVertex3d( 1, -1, -1);
-    glVertex3d( -1, -1, -1);
-    glVertex3d( -1, 1, -1);
+    glVertex3d( 1, 1, 0);
+    glVertex3d( 1, 0, 0);
+    glVertex3d( 0, 0, 0);
+    glVertex3d( 0, 1, 0);
     glNormal3d(1.0,0.0,0.0);
     glVertex3d( 1, 1, 1);
-    glVertex3d( 1, -1, 1);
-    glVertex3d( 1, -1, -1);
-    glVertex3d( 1, 1, -1);
+    glVertex3d( 1, 0, 1);
+    glVertex3d( 1, 0, 0);
+    glVertex3d( 1, 1, 0);
     glNormal3d(0.0,0.0,1.0);
-    glVertex3d(-1, 1, 1);
-    glVertex3d(-1, -1, 1);
-    glVertex3d( 1, -1, 1);
+    glVertex3d(0, 1, 1);
+    glVertex3d(0, 0, 1);
+    glVertex3d( 1, 0, 1);
     glVertex3d( 1, 1, 1);
     glEnd();
     glEndList();

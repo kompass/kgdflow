@@ -153,7 +153,7 @@ config_t* parse_args(int argc, char *argv[])
 	new_conf->size_of_chunk = 10;
 	new_conf->gravity = 10;
 	new_conf->h = 0.1;
-	new_conf->dens0 = 10;
+	new_conf->dens0 = 0.1;
 	new_conf->k = 10;
 	new_conf->delay = 40;
 	new_conf->sigma = 1;

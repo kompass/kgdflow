@@ -62,7 +62,10 @@ double length_vect(vect_t *cible)
 
 void normalize_vect(vect_t *cible)
 {
-	mul_vect(cible, 1 / length_vect(cible));
+	double length = length_vect(cible);
+
+	if(length != 0)
+	mul_vect(cible, 1 / length);
 }
 
 void init_part(particule_t *cible, vect_t *pos, vect_t *speed)
@@ -154,7 +157,7 @@ model_t* init_model(config_t *conf)
 	model->sigma = conf->sigma;
 	model->dens0 = conf->dens0;
 
-	init_vect(&(model->gravity), 0, 0, conf->gravity);
+	init_vect(&(model->gravity), 0, 0, -conf->gravity);
 	model->h = conf->h;
 	model->k = conf->k;
 	model->k_neigh = conf->k_neigh;
@@ -170,9 +173,9 @@ void close_model(model_t *model)
 
 int hash_grid(grid_t *grid, vect_t *pos)
 {
-	int x = (int) pos->x / grid->delta;
-	int y = (int) pos->y / grid->delta;
-	int z = (int) pos->z / grid->delta;
+	int x = (int) (pos->x / grid->delta);
+	int y = (int) (pos->y / grid->delta);
+	int z = (int) (pos->z / grid->delta);
 	int size = grid->size;
 
 	return (x*size+y)*size + z;
@@ -347,7 +350,8 @@ void apply_gravity(model_t *model, double delta)
 
 	for(i = 0; i < model->num_chunk; i++)
 	{
-		for(j = 0; j < model->size_of_chunk; j++)
+		int size = model->size_of_chunk;
+		for(j = 0; j < size*size*size; j++)
 		{
 			part = &(model->chunk_list[i][j]);
 			add_vect(&(part->speed), &gravity_action);
@@ -356,11 +360,6 @@ void apply_gravity(model_t *model, double delta)
 
 }
 
-/*
-* L'algorithme de cette fonction est inspirée du pseudo-code
-* d'un projet d'élèves de l'Ensimag disponible sur le site de l'école.
-* Cf le compte-rendu de ce projet.
-*/
 int apply_viscosity(model_t *model, double delta)
 {
 	int i = 0, j = 0, k = 0;
@@ -402,17 +401,17 @@ int apply_viscosity(model_t *model, double delta)
 						cell = list->first;
 
 						//On ignore les particules précédant part
-						while(cell->part != part)
-						{
-							if(cell == NULL)
-							{
-								new_error(LOGIC_ERROR,
-									"Une particule n'est pas gérée par la structure de partitionnement.");
-								return 1;
-							}
-
+						while(cell != NULL && cell->part != part)
 							cell = cell->next;
-						}
+
+						/*if(cell == NULL)
+						{
+							printf("x: %lf, y: %lf, z: %lf\n", pos.x, pos.y, pos.z);
+							new_error(LOGIC_ERROR,
+								"Une particule n'est pas gérée par la structure de partitionnement.");
+							return 1;
+						}*/
+						if(cell != NULL)
 						cell = cell->next;
 						break;
 					case 1:
@@ -506,7 +505,7 @@ int apply_double_intensity_relaxation(model_t *model, double delta)
 	for(i = 0; i < model->num_chunk; i++)
 	{
 		int size = model->size_of_chunk;
-		for (j = 0; j < size*size*size; ++j)
+		for (j = 0; j < size*size*size; j++)
 		{
 			part = &(model->chunk_list[i][j]);
 
@@ -671,6 +670,7 @@ int apply_double_intensity_relaxation(model_t *model, double delta)
 					{
 						copy_vect(&relax_action, &u_ij);
 						buffer = 1 - q;
+
 						mul_vect(&relax_action,
 							delta*delta*(press*buffer + press_neigh*buffer*buffer));
 						mul_vect(&relax_action, 1/2);
@@ -695,7 +695,7 @@ void apply_collision(model_t *model, double delta)
 	for(i = 0; i < model->num_chunk; i++)
 	{
 		int size = model->size_of_chunk;
-		for (j = 0; j < size*size*size; ++j)
+		for (j = 0; j < size*size*size; j++)
 		{
 			part = &(model->chunk_list[i][j]);
 
@@ -750,14 +750,61 @@ void apply_collision(model_t *model, double delta)
 int update_model(model_t *model, event_t *event, double delta)
 {
 	int error = 0;
+	particule_t *part;
+	vect_t dx;
+	int size = 0;
 
 	apply_gravity(model, delta);
 
 	error = apply_viscosity(model, delta);
 
+	int i = 0, j = 0;
+
+	for(i = 0; i < model->num_chunk; i++)
+	{
+		size = model->size_of_chunk;
+		for(j = 0; j < size*size*size; j++)
+		{
+			part = &(model->chunk_list[i][j]);
+			copy_vect(&dx, &(part->speed));
+			mul_vect(&dx, delta);
+			add_vect(&(part->pos), &dx);
+		}
+	}
+
+	part_list_cell_t *cell, *next_cell;
+
+
+	size = model->part_grid.size;
+	for(j = 0; j < size*size*size; j++)
+	{
+		cell = model->part_grid.map[i].first;
+
+		while(cell != NULL)
+		{
+			next_cell = cell->next;
+			update_part_cell_grid(&(model->part_grid), cell);
+			cell = next_cell;
+		}
+	}
+
+
 	error |= apply_double_intensity_relaxation(model, delta);
 
 	apply_collision(model, delta);
+
+	size = model->part_grid.size;
+	for(j = 0; j < size*size*size; j++)
+	{
+		cell = model->part_grid.map[i].first;
+
+		while(cell != NULL)
+		{
+			next_cell = cell->next;
+			update_part_cell_grid(&(model->part_grid), cell);
+			cell = next_cell;
+		}
+	}
 
 	return error;
 }
