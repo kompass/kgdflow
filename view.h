@@ -17,6 +17,27 @@
 #define KEY_FORWARD 5
 #define KEY_BACKWARD 6
 
+typedef struct vect2d
+{
+	int x, y;
+
+} vect2d_t;
+
+typedef struct button
+{
+	vect2d_t pos;
+	vect2d_t size;
+	void (*callback)(model_t*);
+
+} button_t;
+
+typedef struct  button_list
+{
+	int size;
+	button_t **tab;
+
+} button_list_t;
+
 typedef struct view
 {
 	SDL_Surface *screen;
@@ -27,6 +48,7 @@ typedef struct view
 	GLuint id_stop_tex;
 	GLuint id_pause_tex;
 	GLuint id_reset_tex;
+	button_list_t button_list;
 } view_t;
 
 typedef struct event

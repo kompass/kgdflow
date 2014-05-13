@@ -88,6 +88,69 @@ void set_transp_pixel(view_t *view, int x, int y, Uint32 pixel, int coef)
 }
 */
 
+void init_vect2d(vect2d_t *vect, int x, int y)
+{
+    vect->x = x;
+    vect->y = y;
+}
+
+void init_button(button_t *butt, int xpos, int ypos, int xsize, int ysize, void (*callback)(model_t*))
+{
+    init_vect2d(&(butt->pos), xpos, ypos);
+    init_vect2d(&(butt->size), xsize, ysize);
+    butt->callback = callback;
+}
+
+button_t* new_button(int xpos, int ypos, int xsize, int ysize, void (*callback)(model_t*))
+{
+    button_t *butt = malloc(sizeof(button_t));
+
+    init_button(butt, xpos, ypos, xsize, ysize, callback);
+
+    return butt;
+}
+
+void init_button_list(button_list_t *list)
+{
+    list->size = 0;
+    list->tab = NULL;
+}
+
+void add_button(button_list_t *list, button_t *butt)
+{
+    button_t **new_list = malloc((list->size + 1) * sizeof(button_t*));
+    int i = 0;
+
+    for(i = 0; i < list->size; i++)
+    {
+        new_list[i] = list->tab[i];
+    }
+
+    new_list[list->size] = butt;
+    free(list->tab);
+    list->tab = new_list;
+    list->size++;
+}
+
+int is_in_butt(button_t *butt, int x, int y)
+{
+    return x > butt->pos.x && x < (butt->pos.x + butt->size.x) &&
+        y > butt->pos.y && y < (butt->pos.y + butt->size.y);
+}
+
+void apply_click(button_list_t *list, int x, int y, model_t *model)
+{
+    int i = 0;
+
+    for(i = 0; i < list->size; i++)
+    {
+        if(is_in_butt(list->tab[i], x, y))
+        {
+            (*(list->tab[i]->callback))(model);
+        }
+    }
+}
+
 void init_event(event_t *event)
 {
     event->exit_wanted = 0;
@@ -108,6 +171,7 @@ void get_event(event_t *event, view_t *view)
             case SDL_QUIT:
             event->exit_wanted = 1;
             break;
+
             case SDL_KEYDOWN:
             switch(sdl_event.key.keysym.sym)
             {
@@ -127,6 +191,12 @@ void get_event(event_t *event, view_t *view)
                 event->key = NO_KEY;
                 break;
             }
+            break;
+
+            case SDL_MOUSEBUTTONDOWN:
+            if (sdl_event.button.button == SDL_BUTTON_LEFT)
+                apply_click(&(view->button_list),
+                    sdl_event.button.x, sdl_event.button.y, NULL);
             break;
         }
     }
@@ -148,6 +218,11 @@ double temporize(config_t *conf)
     ticks = new_ticks;
 
     return real_delay; 
+}
+
+void afficher_salut(model_t *model)
+{
+    printf("Salut !\n");
 }
 
 view_t* init_view(config_t *conf)
@@ -174,6 +249,20 @@ view_t* init_view(config_t *conf)
         new_error(SDL_ERROR, SDL_GetError());
         return NULL;
     }
+
+    init_button_list(&(view->button_list));
+
+    button_t *start_butt = new_button(690, 50, 100, 50, afficher_salut);
+    add_button(&(view->button_list), start_butt);
+
+    button_t *stop_butt = new_button(690, 125, 100, 50, afficher_salut);
+    add_button(&(view->button_list), stop_butt);
+
+    button_t *pause_butt = new_button(690, 200, 100, 50, afficher_salut);
+    add_button(&(view->button_list), pause_butt);
+
+    button_t *reset_butt = new_button(690, 275, 100, 50, afficher_salut);
+    add_button(&(view->button_list), reset_butt);
 
     view->part_size = 4;
     view->angle1 = 0;
