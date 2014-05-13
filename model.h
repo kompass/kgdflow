@@ -101,6 +101,7 @@ typedef struct model
 	double dens0;
 	double k;
 	double k_neigh;
+	double coeff_frot;
 	
 } model_t;
 
@@ -261,6 +262,8 @@ int apply_double_intensity_relaxation(model_t *model, double delta);
 *
 */
 int update_model(model_t *model, event_t *event, double delta);
+
+void apply_collision(model_t *model, double delta);
 
 /**
 * \fn void close_model(model_t *model)

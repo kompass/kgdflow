@@ -16,6 +16,7 @@ typedef struct config
 	int delay;
 	double sigma;
 	double beta;
+	double coeff_frot;
 	
 } config_t;
 

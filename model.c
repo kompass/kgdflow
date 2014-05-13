@@ -158,6 +158,7 @@ model_t* init_model(config_t *conf)
 	model->h = conf->h;
 	model->k = conf->k;
 	model->k_neigh = conf->k_neigh;
+	model->coeff_frot = conf->coeff_frot;
 
 	return model;
 }
@@ -381,7 +382,8 @@ int apply_viscosity(model_t *model, double delta)
 	//Pour toute particule part
 	for(i = 0; i <model->num_chunk; i++)
 	{
-		for(j = 0; j < model->size_of_chunk; j++)
+		int size = model->size_of_chunk;
+		for(j = 0; j < size*size*size; j++)
 		{
 			part = &(model->chunk_list[i][j]);
 
@@ -503,7 +505,8 @@ int apply_double_intensity_relaxation(model_t *model, double delta)
 
 	for(i = 0; i < model->num_chunk; i++)
 	{
-		for (j = 0; j < model->size_of_chunk; ++j)
+		int size = model->size_of_chunk;
+		for (j = 0; j < size*size*size; ++j)
 		{
 			part = &(model->chunk_list[i][j]);
 
@@ -684,6 +687,66 @@ int apply_double_intensity_relaxation(model_t *model, double delta)
 	return 0;
 }
 
+void apply_collision(model_t *model, double delta)
+{
+	int i = 0, j = 0;
+	particule_t *part = NULL;
+
+	for(i = 0; i < model->num_chunk; i++)
+	{
+		int size = model->size_of_chunk;
+		for (j = 0; j < size*size*size; ++j)
+		{
+			part = &(model->chunk_list[i][j]);
+
+			if(part->pos.x <= 0)
+			{
+				part->speed.y *= model->coeff_frot;
+				part->speed.z *= model->coeff_frot;
+
+				part->pos.x = 0;
+			}
+			else if(part->pos.x >= model->part_grid.delta * model->part_grid.size)
+			{
+				part->speed.y *= model->coeff_frot;
+				part->speed.z *= model->coeff_frot;
+
+				part->pos.x = model->part_grid.delta * model->part_grid.size;
+			}
+
+			if(part->pos.y <= 0)
+			{
+				part->speed.x *= model->coeff_frot;
+				part->speed.z *= model->coeff_frot;
+
+				part->pos.y = 0;
+			}
+			else if(part->pos.y >= model->part_grid.delta * model->part_grid.size)
+			{
+				part->speed.x *= model->coeff_frot;
+				part->speed.z *= model->coeff_frot;
+
+				part->pos.y = model->part_grid.delta * model->part_grid.size;
+			}
+
+			if(part->pos.z <= 0)
+			{
+				part->speed.y *= model->coeff_frot;
+				part->speed.x *= model->coeff_frot;
+
+				part->pos.z = 0;
+			}
+			else if(part->pos.z >= model->part_grid.delta * model->part_grid.size)
+			{
+				part->speed.y *= model->coeff_frot;
+				part->speed.x *= model->coeff_frot;
+
+				part->pos.z = model->part_grid.delta * model->part_grid.size;
+			}
+		}
+	}
+}
+
 int update_model(model_t *model, event_t *event, double delta)
 {
 	int error = 0;
@@ -693,6 +756,8 @@ int update_model(model_t *model, event_t *event, double delta)
 	error = apply_viscosity(model, delta);
 
 	error |= apply_double_intensity_relaxation(model, delta);
+
+	apply_collision(model, delta);
 
 	return error;
 }

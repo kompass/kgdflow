@@ -158,6 +158,7 @@ config_t* parse_args(int argc, char *argv[])
 	new_conf->delay = 40;
 	new_conf->sigma = 1;
 	new_conf->beta = 1;
+	new_conf->coeff_frot = 0.25;
 
 	return new_conf;
 }

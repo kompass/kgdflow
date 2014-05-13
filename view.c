@@ -293,8 +293,6 @@ void update_view(view_t *view, model_t *model, event_t *event)
 
     glBegin(GL_POINTS);
     glColor3ub(255, 0, 0);
-    glVertex3d(0,0,0);
-    glVertex3d(0.75,0,0);
 
     particule_t *part = NULL;
     int i=0, j=0;
