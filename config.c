@@ -18,6 +18,7 @@ void print_help(char *program_name, int exit_code)
 	printf("-d --delay    number      Temps minimum entre deux mises à jour de l'affichage\n");
 	printf("-p --partsize number      Diamètre d'une particule\n");
 	printf("-s --size     number      Taille du monde\n");
+	printf("-D --distance number      Distance entre deux particules\n");
 	printf("-c --config   filename    Fichier de configuration\n");
 
 	exit(exit_code);
@@ -56,13 +57,103 @@ int ini_file_handler(void *config, const char *section, const char *name, const 
 			return 0;
 		}
 	}
-
+	else if(MATCH("physics", "h"))
+	{
+		conf->h = strtod(value, NULL);
+		if(conf->h <= 0)
+		{
+			printf("Erreur: Valeur de physics::h invalide.\n");
+			return 0;
+		}
+	}
+	else if(MATCH("physics", "dens0"))
+	{
+		conf->dens0 = strtod(value, NULL);
+		if(conf->dens0 <= 0)
+		{
+			printf("Erreur: Valeur de physics::dens0 invalide.\n");
+			return 0;
+		}
+	}
+	else if(MATCH("physics", "k"))
+	{
+		conf->k = strtod(value, NULL);
+		if(conf->k <= 0)
+		{
+			printf("Erreur: Valeur de physics::k invalide.\n");
+			return 0;
+		}
+	}
+	else if(MATCH("physics", "k_neigh"))
+	{
+		conf->k_neigh = strtod(value, NULL);
+		if(conf->k_neigh <= 0)
+		{
+			printf("Erreur: Valeur de physics::k_neigh invalide.\n");
+			return 0;
+		}
+	}
+	else if(MATCH("physics", "sigma"))
+	{
+		conf->sigma = strtod(value, NULL);
+		if(conf->sigma <= 0)
+		{
+			printf("Erreur: Valeur de physics::sigma invalide.\n");
+			return 0;
+		}
+	}
+	else if(MATCH("physics", "beta"))
+	{
+		conf->k_neigh = strtod(value, NULL);
+		if(conf->beta <= 0)
+		{
+			printf("Erreur: Valeur de physics::beta invalide.\n");
+			return 0;
+		}
+	}
+	else if(MATCH("technics", "grid_delta"))
+	{
+		conf->grid_delta = strtod(value, NULL);
+		if(conf->grid_delta <= 0)
+		{
+			printf("Erreur: Valeur de technics::grid_delta invalide.\n");
+			return 0;
+		}
+	}
+	else if(MATCH("technics", "grid_size"))
+	{
+		conf->grid_size = strtod(value, NULL);
+		if(conf->grid_size <= 0)
+		{
+			printf("Erreur: Valeur de technics::grid_size invalide.\n");
+			return 0;
+		}
+	}
+	else if(MATCH("technics", "size_of_chunk"))
+	{
+		conf->size_of_chunk = strtod(value, NULL);
+		if(conf->size_of_chunk <= 0)
+		{
+			printf("Erreur: Valeur de technics::size_of_chunk invalide.\n");
+			return 0;
+		}
+	}
+	else if(MATCH("technics", "delay"))
+	{
+		conf->delay = strtod(value, NULL);
+		if(conf->delay <= 0)
+		{
+			printf("Erreur: Valeur de technics::delay invalide.\n");
+			return 0;
+		}
+	}
+	
 	return 1;
 }
 
 config_t* parse_args(int argc, char *argv[])
 {
-	const char* const short_options = "hH:W:g:d:p:s:";
+	const char* const short_options = "hH:W:g:d:p:s:D:";
 	const struct option long_options[] = {
 		{"help", 0, NULL, 'h'},
 		{"height", 1, NULL, 'H'},
@@ -72,6 +163,7 @@ config_t* parse_args(int argc, char *argv[])
 		{"partsize", 1, NULL, 'p'},
 		{"size", 1, NULL, 's'},
 		{"config", 1, NULL, 'c'},
+		{"distance",1,NULL,'D'},
 		{NULL, 0, NULL, 0}
 	};
 
@@ -137,6 +229,12 @@ config_t* parse_args(int argc, char *argv[])
 			case 'c':
 				conf_filename = strdup(optarg);
 				break;
+			case 'D':
+				new_conf->h= strtod(optarg, NULL);
+				if(new_conf->h <= 0)
+					print_help(argv[0], 0);
+				break;
+
 		}
 	}
 
@@ -146,18 +244,7 @@ config_t* parse_args(int argc, char *argv[])
 		return NULL;
 	}
 
-	new_conf->screen_height = 500;
-	new_conf->screen_width = 800;
-	new_conf->grid_delta = 0.5;
-	new_conf->grid_size = 100;
-	new_conf->size_of_chunk = 10;
-	new_conf->gravity = 10;
-	new_conf->h = 0.1;
-	new_conf->dens0 = 0.1;
-	new_conf->k = 10;
-	new_conf->delay = 40;
-	new_conf->sigma = 1;
-	new_conf->beta = 1;
+
 	new_conf->coeff_frot = 0.25;
 
 	return new_conf;
