@@ -180,6 +180,8 @@ view_t* init_view(config_t *conf)
     view->angle2 = 0;
     view->d = 3;
 
+    create_texture(view);
+
     view->cube = glGenLists(1);
     GLfloat Rose[] = {0.99f, 0.99f, 0.99f, 0.50f};
     glNewList(view->cube, GL_COMPILE);
@@ -224,6 +226,7 @@ view_t* init_view(config_t *conf)
     gluPerspective(70,conf->screen_width/conf->screen_height,1,10000000);
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.129, 0.169, 0.133, 1);
+    glEnable(GL_TEXTURE_2D);
     return view;
 }
 
@@ -279,7 +282,7 @@ void update_view(view_t *view, model_t *model, event_t *event)
     glColor3ub(50, 50, 255);
     glVertex3d(0,0,0);
     glVertex3d(0.75,0,0);
-    
+
     particule_t *part = NULL;
     int i=0, j=0;
 
@@ -293,7 +296,7 @@ void update_view(view_t *view, model_t *model, event_t *event)
     }
 
     glEnd();
-    
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glCallList(view->cube);
@@ -304,16 +307,20 @@ void update_view(view_t *view, model_t *model, event_t *event)
     glMatrixMode(GL_PROJECTION);
 glPushMatrix(); // on enregistre les paramètres pour la 3D
 glLoadIdentity();
-gluOrtho2D(-600, 200, 0, 500);
+gluOrtho2D(-690, 110, 0, 500);
 
 glMatrixMode(GL_MODELVIEW);
 glLoadIdentity();
-glBegin(GL_POINTS);
 
-  // tes dessins 2D
-glVertex2d(0,10);
-
-glEnd();
+glBindTexture(GL_TEXTURE_2D, view->id_start_tex);
+create_rec(450);
+glBindTexture(GL_TEXTURE_2D, view->id_stop_tex);
+create_rec(375);
+glBindTexture(GL_TEXTURE_2D, view->id_pause_tex);
+create_rec(300);
+glBindTexture(GL_TEXTURE_2D, view->id_reset_tex);
+create_rec(225);
+glBindTexture(GL_TEXTURE_2D, 0);
 
 glMatrixMode(GL_PROJECTION);
 glPopMatrix(); // on restitue les paramètres pour la 3D
@@ -324,7 +331,82 @@ glFlush();
 SDL_GL_SwapBuffers();
 }
 
+void create_rec(double but_height)
+{
+    glBegin(GL_QUADS);
+
+     
+    glTexCoord2d(0,0); glVertex2d(0,but_height);
+    glTexCoord2d(1,0); glVertex2d(100, but_height);
+    glTexCoord2d(1,1); glVertex2d(100, but_height-50);
+    glTexCoord2d(0,1); glVertex2d(0, but_height-50);
+
+    glEnd();    
+}
+
+GLuint load_text(char *filename)
+{
+    GLuint id;
+    SDL_Surface *image = IMG_Load(filename);
+
+    if(image == 0)
+    {
+        printf("Erreur: Impossible de charger une images du menu");
+        exit(1);
+    }
+
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_2D, id);
+    GLint formatInterne;
+    GLint format;
+
+    if(image->format->BytesPerPixel == 3)
+    {
+             // Format interne
+        formatInterne = GL_RGB;
+        // Format
+        if(image->format->Rmask == 0xff)
+            format = GL_RGB;
+        else
+            format = GL_BGR;
+    }
+    else if(image->format->BytesPerPixel == 4)
+    {
+                    // Format interne
+
+        formatInterne = GL_RGBA;
+        // Format
+        if(image->format->Rmask == 0xff)
+            format = GL_RGBA;
+        else
+            format = GL_BGRA;
+    }
+    else
+    {
+        printf("Erreur: Format de l'image inconnue");
+        SDL_FreeSurface(image);
+        exit(1);
+    }
+// Copie des pixels
+    glTexImage2D(GL_TEXTURE_2D, 0, formatInterne, image->w, image->h, 0, format, GL_UNSIGNED_BYTE, image->pixels);
+    // Application des filtres
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // Déverrouillage
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    return id;
+}
+
+void create_texture(view_t *view)
+{
+    view->id_start_tex = load_text("buttons/start.png");
+    view->id_stop_tex = load_text("buttons/stop.png");
+    view->id_pause_tex = load_text("buttons/pause.png");
+    view->id_reset_tex = load_text("buttons/reset.png");
+}
+
 void close_view(view_t *view)
 {
-	SDL_Quit();
+    SDL_Quit();
 }

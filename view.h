@@ -5,6 +5,7 @@
 #include "model.h"
 
 #include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 
@@ -22,6 +23,10 @@ typedef struct view
 	double part_size;
 	double angle1,angle2,d;
 	GLuint cube;
+	GLuint id_start_tex;
+	GLuint id_stop_tex;
+	GLuint id_pause_tex;
+	GLuint id_reset_tex;
 } view_t;
 
 typedef struct event
@@ -37,6 +42,8 @@ void update_view(view_t *view, model_t *model, event_t *event);
 void init_event(event_t *event);
 void get_event(event_t *event, view_t *view);
 void close_view(view_t *view);
+void create_rec(double but_height);
+void create_texture(view_t *view);
 //Uint32 get_pixel(view_t *view, int x, int y);
 //void set_pixel(view_t *view, int x, int y, Uint32 pixel);
 //void set_transp_pixel(view_t *view, int x, int y, Uint32 pixel, int coef);

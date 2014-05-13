@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-W -Wall -Wno-unused-parameter -g
-LDFLAGS= -lSDL -lGL -lGLU
+LDFLAGS= -lSDL -lGL -lGLU -lSDL_image
 EXEC=kgdflow
 
 all: $(EXEC)
