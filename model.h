@@ -156,7 +156,21 @@ void mul_vect(vect_t *cible, double coef);
 */
 double length_vect(vect_t *cible);
 
+/**
+* \fn double scalar_product_vect(vect_t *a, vect_t *b)
+* \brief Faire le produit scalaire de deux vecteurs
+*
+* Permet de faire le produit scalaire de deux vecteurs.
+*/
+double scalar_product_vect(vect_t *a, vect_t *b); 
 
+/**
+* \fn void normalize_vect(vect_t *cible)
+* \brief Normalise un vecteur
+*
+* Normalise un vecteur.
+*/
+void normalize_vect(vect_t *cible);
 
 /**
 * \fn void init_part(particule_t *cible, vect *pos, vect_t *speed)
@@ -235,13 +249,12 @@ void remove_part_cell_grid(grid_t *grid, part_list_cell_t *cell);
 */
 int update_part_cell_grid(grid_t *grid, part_list_cell_t *cell);
 
+/*
+* \fn part_list_t* get_same_case_list(grid_t *grid, vect_t *pos)
+* \brief Obtenir la liste des particules se trouvant dans la mème case dans la grid.
+*/
 
-
-
-//double quintic_kernel(vect_t *vect, double h);
-//void compute_particule_position(particule_t *part, part_list *neighbors);
-
-
+part_list_t* get_same_case_list(grid_t *grid, vect_t *pos);
 
 /*
 * \fn model_t* init_model(config_t *conf)
@@ -251,12 +264,23 @@ int update_part_cell_grid(grid_t *grid, part_list_cell_t *cell);
 */
 model_t* init_model(config_t *conf);
 
+/*
+* \fn void start_model(model_t *model)
+* \brief Fonction en relation avec le bouton START qui lance le modèle.
+*/
 void start_model(model_t *model);
 
+/*
+* \fn void stop_model(model_t *model)
+* \brief Fonction en relation avec le bouton STOP qui stop le modèle.
+*/
 void stop_model(model_t *model);
 
+/*
+* \fn void pause_model(model_t *model)
+* \brief Fonction en relation avec le bouton PAUSE qui met en pause le modèle.
+*/
 void pause_model(model_t *model);
-
 
 /**
 * \fn int add_chunk(model_t *model, vect_t *pos)
@@ -264,10 +288,22 @@ void pause_model(model_t *model);
 */
 int add_chunk(model_t *model, vect_t *pos);
 
+/**
+* \fn void apply_gravity(model_t *model, double delta)
+* \brief Fonction qui modelise la gravité dans le modèle.
+*/
 void apply_gravity(model_t *model, double delta);
 
+/**
+* \fn int apply_viscosity(model_t *model, double delta)
+* \brief Fonction qui modelise la viscosité dans le modèle.
+*/
 int apply_viscosity(model_t *model, double delta);
 
+/**
+* \fn int apply_double_intensity_relaxation(model_t *model, double delta)
+* \brief Fonction qui modelise la relaxation à double intensité dans le modèle.
+*/
 int apply_double_intensity_relaxation(model_t *model, double delta);
 
 /**
@@ -276,6 +312,10 @@ int apply_double_intensity_relaxation(model_t *model, double delta);
 */
 int update_model(model_t *model, event_t *event, double delta);
 
+/**
+* \fn void apply_collision(model_t *model, double delta)
+* \brief Fonction qui modelise la collision entre les particules dans le modèle.
+*/
 void apply_collision(model_t *model, double delta);
 
 /**
