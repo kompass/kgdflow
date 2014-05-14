@@ -6,6 +6,12 @@
 #define OUT_OF_BOUNDS_ERROR 3
 #define LOGIC_ERROR 4
 
+/**
+* \struct error_t
+* \brief Tous les paramètres de gestion des erreurs sont dans cette structure
+*
+* Cette structure contient tous les paramètres de gestion des erreurs du programme.
+*/
 typedef struct error
 {
 	int type;
@@ -16,7 +22,16 @@ typedef struct error
 
 extern error_t *g_error_list;
 
+/**
+* \fn void new_error(int error_type, char *comment)
+* \brief Fonction qui creée une nouvelle erreur.
+*/
 void new_error(int error_type, char *comment);
+
+/**
+* \fn error_t* get_error_list()
+* \brief Fonction qui donne la liste des erreurs.
+*/
 error_t* get_error_list();
 
 

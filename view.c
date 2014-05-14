@@ -223,24 +223,12 @@ view_t* init_view(config_t *conf)
     view->d = 2;
 
     create_texture(view);
-    //glColorMaterial (GL_FRONT_AND_BACK, GL_EMISSION);
-    //glEnable (GL_COLOR_MATERIAL);
-    //GLfloat light_direction[] = {-1.0f, -1.0f, 0.f};
-    //GLfloat dark_color[] = {0.0f,0.0f,0.0f,0.5f};
-    //GLfloat white_color[] = {1.0f,1.0f,1.0f,0.5f};
-    //glLightfv(GL_LIGHT0, GL_AMBIENT, dark_color);
-    //glLightfv(GL_LIGHT0, GL_DIFFUSE, white_color);
-    //glLightfv(GL_LIGHT0, GL_SPECULAR, white_color);
-    //glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, light_direction);
 
     view->cube = glGenLists(1);
     GLfloat cube_color[] = {1, 1, 1, 0.05};
     glNewList(view->cube, GL_COMPILE);
     glBegin(GL_QUADS);
 
-    //glColorMaterial (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    //glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, dark_color);
-    //glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, white_color);
     glColor4fv(cube_color);
     glNormal3d(-1.0,0.0,0.0);
     glVertex3d( 0, 1, 1);
@@ -361,21 +349,13 @@ void update_view(view_t *view, model_t *model, event_t *event)
         model->part_grid.delta*model->part_grid.size);
     glCallList(view->cube);
 
-    /*
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glDepthFunc(GL_EQUAL);
-    glCallList(view->cube);
-    glDepthFunc(GL_LESS);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_LIGHT0);*/
     glDisable(GL_BLEND);
 
     glDisable(GL_DEPTH_TEST);
 
     glMatrixMode(GL_PROJECTION);
 
-    glPushMatrix(); // on enregistre les paramètres pour la 3D
+    glPushMatrix(); 
     glLoadIdentity();
     gluOrtho2D(-690, 110, 0, 500);
 
@@ -393,7 +373,7 @@ void update_view(view_t *view, model_t *model, event_t *event)
     glBindTexture(GL_TEXTURE_2D, 0);
 
     glMatrixMode(GL_PROJECTION);
-    glPopMatrix(); // on restitue les paramètres pour la 3D
+    glPopMatrix(); 
 
     glEnable(GL_DEPTH_TEST);
 
