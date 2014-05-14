@@ -1,0 +1,246 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language french
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2.5cm
+\topmargin 3cm
+\rightmargin 2.5cm
+\bottommargin 2.5cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Compte rendu du projet KGDFlow
+\end_layout
+
+\begin_layout Author
+Nicolas KIRCHNER, Matthieu GOUEL et Deborah DARDOUR
+\end_layout
+
+\begin_layout Part*
+Introduction
+\end_layout
+
+\begin_layout Standard
+Suite à la proposition de projet libre pour le projet de C de fin de première
+ année, nous avons choisi un projet ambitieux pour nous, mais extremement
+ intéressant, la simulation de fluide (liquide dans notre cas) sur ordinateur.
+ Il existe deux méthodes pour étudier les fluides: la méthode lagrangienne,
+ qui étudie la vitesse et la densité du fluide en tout point de l'espace,
+ et la méthode eulérienne, qui considère le fluide comme un ensemble de
+ particules.
+\end_layout
+
+\begin_layout Standard
+Nous avons choisi la méthode eulérienne: nous simulons un grand ensemble
+ de particules réagissant suivant la mécanique des fluides.
+ Pour cela nous utilisons la méthode SPH (Smoothed Particle Hydrodynamics),
+ utilisée de nombreuses fois dans la recherche, comme par exemple en astrophysiq
+ue, en ballistique, en volcanologie ou en océanographie.
+\end_layout
+
+\begin_layout Part
+Vue globale
+\end_layout
+
+\begin_layout Section
+Les différentes sections du programme
+\end_layout
+
+\begin_layout Standard
+L'implémentation du programme est basée sur un ensemble de sections communiquant
+ les unes avec les autres au travers de leurs structures respectives.
+ Ces differentes sections sont la configuration (c'est à dire la lecture
+ de la ligne de commande et du fichier de configuration), le modèle physique,
+ l'affichage, et la gestion des erreurs.
+\end_layout
+
+\begin_layout Standard
+Nicolas devait s'occuper initialement du modèle physique et de la gestion
+ des erreurs, Matthieu d'une grosse partie de l'affichage, et Deborah de
+ la configuration, de l'autre partie de l'affichage (afficher des boules
+ au lieu de points pour les particules), et de la documentation.
+\end_layout
+
+\begin_layout Standard
+Cependant Deborah a abandonné le projet, nous avons dû donc reprendre sa
+ partie (ce qui, en plus du retard que nous avions déjà, nous en a rajouté),
+ et nous avons fini par travailler tous les deux sur toutes les sections
+ du code ensemble.
+\end_layout
+
+\begin_layout Part
+Le Modèle physique
+\end_layout
+
+\begin_layout Section
+Théorie
+\end_layout
+
+\begin_layout Standard
+Afin de simuler numeriquement le mouvement des particules, nous avons utilisé
+ la méthode d'Euler qui permet, à partir de l'état du système à un instant
+ t, de faire une approximation du système à l'instant t + dt si dt est suffisamm
+ent petit.
+ En répetant cette étape en boucle, il est alors possible de simuler l'état
+ du système au cours du temps avec une précision dépendant de ce dt (et
+ bien sûr de la précision des calculs et des paramètres physiques utilisés).
+\end_layout
+
+\begin_layout Standard
+La méthode SPH permet de réduire la quantité de calculs, par rapport à la
+ méthode naïve, en supposant que les forces qu'exerce une particule sur
+ une autre suffisamment lointaine sont nulles, et donc que nous n'avons
+ pas besoin de les calculer.
+\end_layout
+
+\begin_layout Section
+Implémentation
+\end_layout
+
+\begin_layout Standard
+Afin justemment de ne pas avoir à calculer ces forces pour des particules
+ lointaines, nous avons implémenté un système de partitionnement de l'espace
+ qui permet de chercher les proches voisins d'une particule avec une complexité
+ quasi-linéaire.
+ Ainsi, au lieu d'avoir une complexité globale de N^2, nous avons une complexité
+ juste un peu supérieure à N.
+ Ce système de partitionnement de l'espace est un quadrillage en petits
+ cubes de l'espace, et est basé sur un tableau de listes de pointeurs vers
+ des particules.
+ Chaque liste contient l'ensemble des particules contenues dans un des cubes
+ de l'espace.
+ Ainsi, pour obtenir la liste des voisins d'une particule, il nous suffit
+ de prendre la liste des particules se trouvant dans la même case et dans
+ les cases juste voisines, ce qui se fait en complexité unitaire.
+\end_layout
+
+\begin_layout Standard
+Cette système de partitionnement doit être mit à jour à chaque mise à jour
+ de la position des particules.
+ Cette mise à jour, qui consiste pour chaque particule à l'enlever de son
+ ancienne case pour l'inserer dans sa nouvelle case, se fait en temps quasi-unit
+aire (il existe un cas, qui se produit relativement régulièrement, ou la
+ complexité est linéaire par rapport au nombre de cases (bien inférieur
+ au nombre de particules en pratique et surtout, fixe).
+\end_layout
+
+\begin_layout Part
+L'affichage et la gestion des evenements
+\end_layout
+
+\begin_layout Section
+Outils utilisés
+\end_layout
+
+\begin_layout Standard
+Pour afficher l'ensemble des particules en mouvement dans un espace à trois
+ dimensions, nous avons décidé d'utiliser SDL et OpenGL.
+ SDL nous permet d'avoir une fenêtre dans laquelle travailler, de récupérer
+ les interactions avec l'utilisateur (clavier et souris) et de limiter le
+ nombre d'images par secondes (pour alléger le processeur) au travers de
+ temporisations, et OpenGL nous permet d'afficher les particules et le cube
+ symbolisant l'espace en trois dimensions dans lequel elle évoluent, de
+ tourner autours , d'avancer ou de reculer, en utilisant la puissance de
+ la carte graphique.
+\end_layout
+
+\begin_layout Section
+Implémentation
+\end_layout
+
+\begin_layout Standard
+Nous avons séparé l'affichage et la gestion des évenements.
+ La gestion des évenements (incluant la gestion des boutons) remplie une
+ structure event_t contenant toutes les informations nécessaires, qui est
+ ensuite envoyée à la gestion du modèle physique et à l'affichage afin de
+ les mettre à jour.
+ L'affichage, après avoir initialisé SDL et OpenGL, gère l'affichage des
+ particules et du cube, et l'affichage des boutons.
+\end_layout
+
+\begin_layout Part
+La configuration
+\end_layout
+
+\begin_layout Standard
+La configuration, qui consiste à remplir une structure contenant tous les
+ paramètres du programme (qui est ensuite envoyée aux autres sections du
+ programme afin de correctement les initialiser) en lisant la ligne de commande
+ et le fichier de configuration a été aidée par l'utilisation d'une fonction
+ getopt_long contenue dans la bibliothèque standard facilitant la lecture
+ de la ligne de commande, et par la bibliothèque inih disponible sur internet
+ en license BSD qui nous a permis de lire facilement le fichier de configuration.
+\end_layout
+
+\begin_layout Part*
+Conclusion
+\end_layout
+
+\begin_layout Standard
+Par manque de temps et par abandon d'une personne de l'equipe, nous n'avons
+ pas réussi à obtenir un programme fonctionnel: le modèle physique réagit
+ étrangement, et nous obtenons parfois des erreurs (des particules allant
+ tellement vite qu'elles quittent le cube et font planter la simulation).
+ Cependant, la configuration, l'affichage et la gestion des erreurs fonctionnent
+, si ce n'est un affichage qui manque clairement d'esthétisme.
+ 
+\end_layout
+
+\end_body
+\end_document
