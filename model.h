@@ -26,7 +26,9 @@ typedef struct vect
 typedef struct particule
 {
 	vect_t pos;
+	vect_t previous_pos;
 	vect_t speed;
+	double press;
 
 } particule_t;
 
@@ -89,6 +91,10 @@ typedef struct grid
 */
 typedef struct model
 {
+	enum
+	{
+		START, STOP
+	} state;
 	int size_of_chunk;
 	int num_chunk;
 	int max_chunk;
@@ -244,6 +250,13 @@ int update_part_cell_grid(grid_t *grid, part_list_cell_t *cell);
 * La structure est initialisée en fonction des paramètres inscrits dans conf.
 */
 model_t* init_model(config_t *conf);
+
+void start_model(model_t *model);
+
+void stop_model(model_t *model);
+
+void pause_model(model_t *model);
+
 
 /**
 * \fn int add_chunk(model_t *model, vect_t *pos)

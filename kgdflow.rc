@@ -4,15 +4,15 @@ width=800
 
 [physics]
 gravity=10
-h=0.1
-dens0=0.1
-k=10
-k_neigh=10
-sigma=1
-beta=1
+h=0.05
+dens0=5
+k=1
+k_neigh=1
+sigma=0.01
+beta=0.01
 
 [technics]
-grid_delta=0.5
-grid_size=100
+grid_delta=0.2
+grid_size=5
 size_of_chunk=10
 delay=40

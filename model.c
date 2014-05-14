@@ -139,6 +139,7 @@ model_t* init_model(config_t *conf)
 		return NULL;
 	}
 
+	model->state = STOP;
 	model->num_chunk = 0;
 	model->max_chunk = 0;
 	model->chunk_list = NULL;
@@ -169,6 +170,24 @@ model_t* init_model(config_t *conf)
 void close_model(model_t *model)
 {
 	free(model);
+}
+
+void start_model(model_t *model)
+{
+	model->state = START;
+}
+
+void stop_model(model_t *model)
+{
+	model->state = STOP;
+}
+
+void pause_model(model_t *model)
+{
+	if(model->state == START)
+		stop_model(model);
+	else
+		start_model(model);
 }
 
 int hash_grid(grid_t *grid, vect_t *pos)
@@ -213,6 +232,7 @@ part_list_t* get_same_case_list(grid_t *grid, vect_t *pos)
 
 	if(hash < 0 || hash >= size*size*size)
 	{
+		printf("%lf   %lf   %lf\n", pos->x, pos->y, pos->z);
 		new_error(OUT_OF_BOUNDS_ERROR, "Hash hors limites dans get_same_case_list.");
 		return NULL;
 	}
@@ -224,7 +244,9 @@ void remove_part_cell_grid(grid_t *grid, part_list_cell_t *cell)
 {
 	int i = 0;
 
-	cell->next->prev = cell->prev;
+	if(cell->next != NULL)
+		cell->next->prev = cell->prev;
+
 	if(cell->prev == NULL)
 	{
 		for(i = 0; i < grid->size; i++)
@@ -293,7 +315,7 @@ int add_chunk(model_t *model, vect_t *pos)
 {
 	int i = 0, j = 0, k = 0;
 	int soc = model->size_of_chunk;
-	double h = model->h;
+	double h = model->h/5;
 
 	model->num_chunk++;
 	if(model->num_chunk > model->max_chunk)
@@ -331,6 +353,7 @@ int add_chunk(model_t *model, vect_t *pos)
 				init_vect(&(new_chunk[(i*soc + j)* soc + k].pos),
 					pos->x + (double) i * h, pos->y + (double) j * h, pos->z + (double) k * h);
 				insert_part_grid(&(model->part_grid), &(new_chunk[(i*soc + j)* soc + k]));
+				new_chunk[(i*soc + j)* soc + k].press = 0;
 			}
 		}
 	}
@@ -461,8 +484,7 @@ int apply_viscosity(model_t *model, double delta)
 						if(u > 0)
 						{
 							copy_vect(&viscosity_action, &u_ij);
-							mul_vect(&viscosity_action, delta * (1 - q) * (sigma*u + beta*u*u));
-							mul_vect(&viscosity_action, 1/2);
+							mul_vect(&viscosity_action, delta * (1 - q) * (sigma*u + beta*u*u)/2);
 
 							sub_vect(&(part->speed), &viscosity_action);
 							add_vect(&(neighbor->speed), &viscosity_action);
@@ -593,6 +615,7 @@ int apply_double_intensity_relaxation(model_t *model, double delta)
 			}
 
 			press = k * (dens - dens0);
+			part->press = press;
 			press_neigh = k_neigh * dens_neigh;
 
 			for(l = 0; l < 7; l++)
@@ -672,8 +695,9 @@ int apply_double_intensity_relaxation(model_t *model, double delta)
 						buffer = 1 - q;
 
 						mul_vect(&relax_action,
-							delta*delta*(press*buffer + press_neigh*buffer*buffer));
-						mul_vect(&relax_action, 1/2);
+							delta*delta*(press*buffer + press_neigh*buffer*buffer)/2);
+						//printf("%lf\n", length_vect(&relax_action));
+						//printf("%lf\n", delta*delta*(press*buffer + press_neigh*buffer*buffer));
 						add_vect(&(neighbor->pos), &relax_action);
 						sub_vect(&(part->pos), &relax_action);
 					}
@@ -699,47 +723,53 @@ void apply_collision(model_t *model, double delta)
 		{
 			part = &(model->chunk_list[i][j]);
 
-			if(part->pos.x <= 0)
+			if(part->pos.x <= 0.001)
 			{
 				part->speed.y *= model->coeff_frot;
 				part->speed.z *= model->coeff_frot;
+				part->speed.x = 0;
 
-				part->pos.x = 0;
+				part->pos.x = 0.001;
 			}
 			else if(part->pos.x >= model->part_grid.delta * model->part_grid.size)
 			{
 				part->speed.y *= model->coeff_frot;
 				part->speed.z *= model->coeff_frot;
+				part->speed.x = 0;
 
 				part->pos.x = model->part_grid.delta * model->part_grid.size;
 			}
 
-			if(part->pos.y <= 0)
+			if(part->pos.y <= 0.001)
 			{
 				part->speed.x *= model->coeff_frot;
 				part->speed.z *= model->coeff_frot;
+				part->speed.y = 0;
 
-				part->pos.y = 0;
+				part->pos.y = 0.001;
 			}
 			else if(part->pos.y >= model->part_grid.delta * model->part_grid.size)
 			{
 				part->speed.x *= model->coeff_frot;
 				part->speed.z *= model->coeff_frot;
+				part->speed.y = 0;
 
 				part->pos.y = model->part_grid.delta * model->part_grid.size;
 			}
 
-			if(part->pos.z <= 0)
+			if(part->pos.z <= 0.001)
 			{
 				part->speed.y *= model->coeff_frot;
 				part->speed.x *= model->coeff_frot;
+				part->speed.z = 0;
 
-				part->pos.z = 0;
+				part->pos.z = 0.001;
 			}
 			else if(part->pos.z >= model->part_grid.delta * model->part_grid.size)
 			{
 				part->speed.y *= model->coeff_frot;
 				part->speed.x *= model->coeff_frot;
+				part->speed.z = 0;
 
 				part->pos.z = model->part_grid.delta * model->part_grid.size;
 			}
@@ -754,11 +784,26 @@ int update_model(model_t *model, event_t *event, double delta)
 	vect_t dx;
 	int size = 0;
 
+	int i = 0, j = 0;
+
+	if(model->state == STOP)
+		return 0;
+
+	for(i = 0; i < model->num_chunk; i++)
+	{
+		size = model->size_of_chunk;
+		for(j = 0; j < size*size*size; j++)
+		{
+			part = &(model->chunk_list[i][j]);
+
+			copy_vect(&(part->previous_pos), &(part->pos));
+		}
+	}
+
 	apply_gravity(model, delta);
 
 	error = apply_viscosity(model, delta);
 
-	int i = 0, j = 0;
 
 	for(i = 0; i < model->num_chunk; i++)
 	{
@@ -791,6 +836,18 @@ int update_model(model_t *model, event_t *event, double delta)
 
 	error |= apply_double_intensity_relaxation(model, delta);
 
+	for(i = 0; i < model->num_chunk; i++)
+	{
+		size = model->size_of_chunk;
+		for(j = 0; j < size*size*size; j++)
+		{
+			part = &(model->chunk_list[i][j]);
+
+			copy_vect(&(part->speed), &(part->pos));
+			sub_vect(&(part->speed), &(part->previous_pos));
+		}
+	}
+
 	apply_collision(model, delta);
 
 	size = model->part_grid.size;
@@ -806,92 +863,7 @@ int update_model(model_t *model, event_t *event, double delta)
 		}
 	}
 
+	//printf("FINI\n");
+
 	return error;
 }
-
-/*
-void update_model(model_t *model, event_t *event, double delta)
-{
-	particule_t *part, *neighbor;
-	vect_t gravity_action, r_ij, u_ij, v_ji, viscosity_action, relax_action;
-	double h = model->h;
-	double q, u;
-	double dens, dens_neigh, press, press_neigh;
-	double dens0 = model->dens0;
-	double k = model->k;
-	double k_neigh =  model->k_neigh;
-	double buffer;
-
-	apply_viscosity_and_gravity(model, delta);
-	//Calcul Viscosité:
-	//pour toute particule neighbor voisine de part tq i<j :
-	copy_vect(&r_ij, &(neighbor->pos));
-	sub_vect(&r_ij, &(part->pos));
-	q = length_vect(&r_ij) / h;
-	if(q < 1)
-	{
-		copy_vect(&u_ij, &r_ij);
-		normalize_vect(&u_ij);
-
-		copy_vect(&v_ji, &(part->speed));
-		sub_vect(&v_ji, &(neighbor->speed));
-
-		//vitesse radiale entrante
-		u = scalar_product_vect(&v_ji, &u_ij);
-
-		if(u > 0)
-		{
-			copy_vect(&viscosity_action, &u_ij);
-			mul_vect(&viscosity_action, delta * (1 - q) * (sigma*u + beta*u*u));
-			mul_vect(&viscosity_action, 1 / 2);
-
-			sub_vect(&(part->speed), &viscosity_action);
-			add_vect(&(neighbor->speed), &viscosity_action);
-		}
-	}
-	//Fin Pour tous voisins
-
-	//Calcul gravité
-	copy_vect(&gravity_action, &(model->gravity));
-	mul_vect(&gravity_action, delta);
-	add_vect(&(part->speed), &gravity_action);
-	//Fin pour toute particule
-
-	//pour toute particule
-	//Calcul relaxation double densité
-	dens = 0;
-	dens_neigh = 0;
-	//Pour toute particule voisine
-	copy_vect(&r_ij, &(neighbor->pos));
-	sub_vect(&r_ij, &(part->pos));
-	q = length_vect(&r_ij) / h;
-
-	if(q < 1)
-	{
-		buffer = 1 - q;
-		dens += buffer * buffer;
-		dens_neigh += buffer * buffer * buffer;
-	}
-
-	//Fin pour toute particule voisine
-
-	press = k * (dens - dens0);
-	press_neigh = k_neigh * dens_neigh;
-
-	//Pour toute particule voisine
-	copy_vect(&r_ij, &(neighbor->pos));
-	sub_vect(&r_ij, &(part->pos));
-	q = length_vect(&r_ij) / h;
-	copy_vect(&u_ij, &r_ij);
-	normalize_vect(&u_ij);
-	if(q < 1)
-	{
-		copy_vect(&relax_action, &u_ij);
-		buffer = 1 - q;
-		mul_vect(&relax_action, delta*delta*(press*buffer + press_neigh*buffer*buffer));
-		mul_vect(&relax_action, 1/2);
-		add_vect(&(neighbor->pos), &relax_action);
-		sub_vect(&(part->pos), &relax_action);
-	}
-}
-*/

@@ -52,10 +52,10 @@ void add_button(button_list_t *list, button_t *butt)
 int is_in_butt(button_t *butt, int x, int y)
 {
     return x > butt->pos.x && x < (butt->pos.x + butt->size.x) &&
-        y > butt->pos.y && y < (butt->pos.y + butt->size.y);
+    y > butt->pos.y && y < (butt->pos.y + butt->size.y);
 }
 
-void apply_click(button_list_t *list, int x, int y, model_t *model)
+void apply_click(button_list_t *list, int x, int y, event_t *event)
 {
     int i = 0;
 
@@ -63,7 +63,7 @@ void apply_click(button_list_t *list, int x, int y, model_t *model)
     {
         if(is_in_butt(list->tab[i], x, y))
         {
-            (*(list->tab[i]->callback))(model);
+            event->click_callback = list->tab[i]->callback;
         }
     }
 }
@@ -71,6 +71,8 @@ void apply_click(button_list_t *list, int x, int y, model_t *model)
 void init_event(event_t *event)
 {
     event->exit_wanted = 0;
+    event->key = NO_KEY;
+    event->click_callback = NULL;
 }
 
 void get_event(event_t *event, view_t *view)
@@ -90,30 +92,48 @@ void get_event(event_t *event, view_t *view)
             break;
 
             case SDL_KEYDOWN:
-            switch(sdl_event.key.keysym.sym)
+            if(sdl_event.key.keysym.mod & KMOD_CTRL)
             {
-                case SDLK_UP:
-                event->key = KEY_UP;
-                break;
-                case SDLK_DOWN:
-                event->key = KEY_DOWN;
-                break;
-                case SDLK_RIGHT:
-                event->key = KEY_RIGHT;
-                break;
-                case SDLK_LEFT:
-                event->key = KEY_LEFT;
-                break;
-                default:
-                event->key = NO_KEY;
-                break;
+                switch(sdl_event.key.keysym.sym)
+                {
+                    case SDLK_UP:
+                    event->key = KEY_FORWARD;
+                    break;
+                    case SDLK_DOWN:
+                    event->key = KEY_BACKWARD;
+                    break;
+                    default:
+                    event->key = NO_KEY;
+                    break;
+                }
+            }
+            else
+            {
+                switch(sdl_event.key.keysym.sym)
+                {
+                    case SDLK_UP:
+                    event->key = KEY_UP;
+                    break;
+                    case SDLK_DOWN:
+                    event->key = KEY_DOWN;
+                    break;
+                    case SDLK_RIGHT:
+                    event->key = KEY_RIGHT;
+                    break;
+                    case SDLK_LEFT:
+                    event->key = KEY_LEFT;
+                    break;
+                    default:
+                    event->key = NO_KEY;
+                    break;
+                }
             }
             break;
 
             case SDL_MOUSEBUTTONDOWN:
             if (sdl_event.button.button == SDL_BUTTON_LEFT)
                 apply_click(&(view->button_list),
-                    sdl_event.button.x, sdl_event.button.y, NULL);
+                    sdl_event.button.x, sdl_event.button.y, event);
             break;
         }
     }
@@ -153,9 +173,9 @@ double temporize(config_t *conf)
     return real_delay; 
 }
 
-void afficher_salut(model_t *model)
+void reset_not_implemented(model_t *model)
 {
-    printf("Salut !\n");
+    printf("Attention: Reset n'est pas encore implémenté.\n");
 }
 
 view_t* init_view(config_t *conf)
@@ -185,42 +205,42 @@ view_t* init_view(config_t *conf)
 
     init_button_list(&(view->button_list));
 
-    button_t *start_butt = new_button(690, 50, 100, 50, afficher_salut);
+    button_t *start_butt = new_button(690, 50, 100, 50, start_model);
     add_button(&(view->button_list), start_butt);
 
-    button_t *stop_butt = new_button(690, 125, 100, 50, afficher_salut);
+    button_t *stop_butt = new_button(690, 125, 100, 50, stop_model);
     add_button(&(view->button_list), stop_butt);
 
-    button_t *pause_butt = new_button(690, 200, 100, 50, afficher_salut);
+    button_t *pause_butt = new_button(690, 200, 100, 50, pause_model);
     add_button(&(view->button_list), pause_butt);
 
-    button_t *reset_butt = new_button(690, 275, 100, 50, afficher_salut);
+    button_t *reset_butt = new_button(690, 275, 100, 50, reset_not_implemented);
     add_button(&(view->button_list), reset_butt);
 
-    view->part_size = 4;
+    view->part_size = 1;
     view->angle1 = 0;
     view->angle2 = 0;
-    view->d = 3;
+    view->d = 2;
 
     create_texture(view);
-    glColorMaterial (GL_FRONT_AND_BACK, GL_EMISSION);
-    glEnable (GL_COLOR_MATERIAL);
-    GLfloat light_direction[] = {-1.0f, -1.0f, 0.f};
-    GLfloat dark_color[] = {0.0f,0.0f,0.0f,0.5f};
-    GLfloat white_color[] = {1.0f,1.0f,1.0f,0.5f};
-    glLightfv(GL_LIGHT0, GL_AMBIENT, dark_color);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, white_color);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, white_color);
-    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, light_direction);
+    //glColorMaterial (GL_FRONT_AND_BACK, GL_EMISSION);
+    //glEnable (GL_COLOR_MATERIAL);
+    //GLfloat light_direction[] = {-1.0f, -1.0f, 0.f};
+    //GLfloat dark_color[] = {0.0f,0.0f,0.0f,0.5f};
+    //GLfloat white_color[] = {1.0f,1.0f,1.0f,0.5f};
+    //glLightfv(GL_LIGHT0, GL_AMBIENT, dark_color);
+    //glLightfv(GL_LIGHT0, GL_DIFFUSE, white_color);
+    //glLightfv(GL_LIGHT0, GL_SPECULAR, white_color);
+    //glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, light_direction);
 
     view->cube = glGenLists(1);
     GLfloat cube_color[] = {1, 1, 1, 0.05};
     glNewList(view->cube, GL_COMPILE);
     glBegin(GL_QUADS);
 
-    glColorMaterial (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, dark_color);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, white_color);
+    //glColorMaterial (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+    //glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, dark_color);
+    //glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, white_color);
     glColor4fv(cube_color);
     glNormal3d(-1.0,0.0,0.0);
     glVertex3d( 0, 1, 1);
@@ -287,11 +307,11 @@ void update_view(view_t *view, model_t *model, event_t *event)
         break;
 
         case KEY_FORWARD:
-        view->d++;
+        view->d -= delta;
         break;
 
         case KEY_BACKWARD:
-        view->d--;
+        view->d += delta;
         break;
     }
 
@@ -311,7 +331,9 @@ void update_view(view_t *view, model_t *model, event_t *event)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     gluLookAt(x,y,z,0,0,0,0,0,1);
-
+    glTranslated(-model->part_grid.delta*model->part_grid.size/2,
+        -model->part_grid.delta*model->part_grid.size/2,
+        -model->part_grid.delta*model->part_grid.size/2);
 
     glBegin(GL_POINTS);
     glColor3ub(255, 0, 0);
@@ -325,6 +347,7 @@ void update_view(view_t *view, model_t *model, event_t *event)
         for(j = 0; j < size*size*size; j++)
         {
             part = &(model->chunk_list[i][j]);
+            glColor3ub(255, (part->press-9)*100, (part->press-9)*100);
             glVertex3d(part->pos.x, part->pos.y, part->pos.z);
         }
     }
@@ -333,6 +356,9 @@ void update_view(view_t *view, model_t *model, event_t *event)
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glScaled(model->part_grid.delta*model->part_grid.size,
+        model->part_grid.delta*model->part_grid.size,
+        model->part_grid.delta*model->part_grid.size);
     glCallList(view->cube);
 
     /*

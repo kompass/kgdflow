@@ -104,7 +104,7 @@ int ini_file_handler(void *config, const char *section, const char *name, const 
 	}
 	else if(MATCH("physics", "beta"))
 	{
-		conf->k_neigh = strtod(value, NULL);
+		conf->beta = strtod(value, NULL);
 		if(conf->beta <= 0)
 		{
 			printf("Erreur: Valeur de physics::beta invalide.\n");
@@ -245,7 +245,7 @@ config_t* parse_args(int argc, char *argv[])
 	}
 
 
-	new_conf->coeff_frot = 0.25;
+	new_conf->coeff_frot = 0.99;
 
 	return new_conf;
 }

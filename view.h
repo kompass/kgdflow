@@ -55,6 +55,7 @@ typedef struct event
 {
 	int exit_wanted;
 	int key;
+	void (*click_callback)(model_t*);
 
 } event_t;
 

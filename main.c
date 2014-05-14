@@ -55,23 +55,43 @@ int main(int argc, char *argv[])
 	init_event(&event);
 
 	vect_t chunk_pos;
-	init_vect(&chunk_pos, 0.5, 0.5, 0.5);
+	init_vect(&chunk_pos, 0.4, 0.4, 0.4);
 	add_chunk(model, &chunk_pos);
+	//add_chunk(model, &chunk_pos);
+	//add_chunk(model, &chunk_pos);
+	//add_chunk(model, &chunk_pos);
+	//add_chunk(model, &chunk_pos);
+	//add_chunk(model, &chunk_pos);
+
 
 	while(!event.exit_wanted)
 	{
 		delta_time = temporize(conf);
 		get_event(&event, view);
+
+		if(event.click_callback != NULL)
+			(*(event.click_callback))(model);
+
 		error = update_model(model, &event, delta_time);
 
 		if(error)
 		{
+			printf("ERREUR DETECTEE !\n");
 			error_cell = get_error_list();
+			int error_count = 0;
 
 			while(error_cell != NULL)
 			{
 				printf("%s\n", error_cell->comment);
 				error_cell = error_cell->next;
+				error_count++;
+				if(error_count >= 10)
+				{
+					printf("Appuyez sur ENTREE pour voir la suite, q puis ENTREE pour quitter.\n");
+					if(getchar() == 'q')
+						return 1;
+					error_count = 0;
+				}
 			}
 			return 1;
 		}
