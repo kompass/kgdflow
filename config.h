@@ -20,6 +20,8 @@ typedef struct config
 	
 } config_t;
 
+void print_help(char *program_name, int exit_code);
+int ini_file_handler(void *config, const char *section, const char *name, const char *value);
 config_t* parse_args(int argc, char *argv[]);
 void close_conf(config_t *conf);
 

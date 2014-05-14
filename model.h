@@ -156,6 +156,9 @@ void mul_vect(vect_t *cible, double coef);
 */
 double length_vect(vect_t *cible);
 
+double scalar_product_vect(vect_t *a, vect_t *b); 
+
+void normalize_vect(vect_t *cible);
 
 
 /**
@@ -236,11 +239,7 @@ void remove_part_cell_grid(grid_t *grid, part_list_cell_t *cell);
 int update_part_cell_grid(grid_t *grid, part_list_cell_t *cell);
 
 
-
-
-//double quintic_kernel(vect_t *vect, double h);
-//void compute_particule_position(particule_t *part, part_list *neighbors);
-
+part_list_t* get_same_case_list(grid_t *grid, vect_t *pos);
 
 
 /*

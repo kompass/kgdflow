@@ -281,35 +281,6 @@ int update_part_cell_grid(grid_t *grid, part_list_cell_t *cell)
 	return 0;
 }
 
-/*
-double quintic_kernel(vect_t *vect, double h)
-{
-	double alpha = 7 / (8*pi*h*h*h);
-	double q = length_vect(vect) / h;
-
-	double x = (1 - q/2);
-	double x4 = x*x*x*x;
-
-	return alpha*x4*(2*q + 1);
-}
-*/
-
-/*
-double quintic_kernel_deriv(vect_t *vect, double h)
-{
-	double alpha = 7 / (8*pi*h*h*h);
-	double q = length_vect(vect) / h;
-
-	double x = (1 - q/2);
-}
-*/
-
-/*
-void compute_particule_position(particule_t *part, part_list *neighbors)
-{
-	
-}
-*/
 
 int add_chunk(model_t *model, vect_t *pos)
 {

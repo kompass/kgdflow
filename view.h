@@ -61,14 +61,21 @@ typedef struct event
 
 view_t* init_view(config_t *conf);
 double temporize(config_t *conf);
+void reset_not_implemented(model_t *model);
 void update_view(view_t *view, model_t *model, event_t *event);
 void init_event(event_t *event);
 void get_event(event_t *event, view_t *view);
 void close_view(view_t *view);
 void create_rec(double but_height);
 void create_texture(view_t *view);
-//Uint32 get_pixel(view_t *view, int x, int y);
-//void set_pixel(view_t *view, int x, int y, Uint32 pixel);
-//void set_transp_pixel(view_t *view, int x, int y, Uint32 pixel, int coef);
+void init_vect2d(vect2d_t *vect, int x, int y);
+void init_button(button_t *butt, int xpos, int ypos, int xsize, int ysize, void (*callback)(model_t*));
+button_t* new_button(int xpos, int ypos, int xsize, int ysize, void (*callback)(model_t*));
+void init_button_list(button_list_t *list);
+void add_button(button_list_t *list, button_t *butt);
+int is_in_butt(button_t *butt, int x, int y);
+void apply_click(button_list_t *list, int x, int y, event_t *event);
+GLuint load_text(char *filename);
+
 
 #endif
