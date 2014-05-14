@@ -1,10 +1,10 @@
 [screen]
-height=500
-width=800
+height=800
+width=1000
 
 [physics]
 gravity=10
-h=0.05
+h=0.01
 dens0=5
 k=1
 k_neigh=1

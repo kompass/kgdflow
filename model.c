@@ -315,7 +315,7 @@ int add_chunk(model_t *model, vect_t *pos)
 {
 	int i = 0, j = 0, k = 0;
 	int soc = model->size_of_chunk;
-	double h = model->h/5;
+	double h = model->h/2;
 
 	model->num_chunk++;
 	if(model->num_chunk > model->max_chunk)

@@ -40,6 +40,8 @@ typedef struct  button_list
 
 typedef struct view
 {
+	int screen_width;
+	int screen_height;
 	SDL_Surface *screen;
 	double part_size;
 	double angle1,angle2,d;

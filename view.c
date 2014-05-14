@@ -205,22 +205,24 @@ view_t* init_view(config_t *conf)
 
     init_button_list(&(view->button_list));
 
-    button_t *start_butt = new_button(690, 50, 100, 50, start_model);
+    button_t *start_butt = new_button(conf->screen_width - 110, 50, 100, 50, start_model);
     add_button(&(view->button_list), start_butt);
 
-    button_t *stop_butt = new_button(690, 125, 100, 50, stop_model);
+    button_t *stop_butt = new_button(conf->screen_width - 110, 125, 100, 50, stop_model);
     add_button(&(view->button_list), stop_butt);
 
-    button_t *pause_butt = new_button(690, 200, 100, 50, pause_model);
+    button_t *pause_butt = new_button(conf->screen_width - 110, 200, 100, 50, pause_model);
     add_button(&(view->button_list), pause_butt);
 
-    button_t *reset_butt = new_button(690, 275, 100, 50, reset_not_implemented);
+    button_t *reset_butt = new_button(conf->screen_width - 110, 275, 100, 50, reset_not_implemented);
     add_button(&(view->button_list), reset_butt);
 
     view->part_size = 1;
     view->angle1 = 0;
     view->angle2 = 0;
     view->d = 2;
+    view->screen_width = conf->screen_width;
+    view->screen_height = conf->screen_height;
 
     create_texture(view);
     //glColorMaterial (GL_FRONT_AND_BACK, GL_EMISSION);
@@ -377,19 +379,19 @@ void update_view(view_t *view, model_t *model, event_t *event)
 
     glPushMatrix(); // on enregistre les paramètres pour la 3D
     glLoadIdentity();
-    gluOrtho2D(-690, 110, 0, 500);
+    gluOrtho2D(-(view->screen_width - 110), 110, 0, view->screen_height);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
     glBindTexture(GL_TEXTURE_2D, view->id_start_tex);
-    create_rec(450);
+    create_rec(view->screen_height - 50);
     glBindTexture(GL_TEXTURE_2D, view->id_stop_tex);
-    create_rec(375);
+    create_rec(view->screen_height - 125);
     glBindTexture(GL_TEXTURE_2D, view->id_pause_tex);
-    create_rec(300);
+    create_rec(view->screen_height - 200);
     glBindTexture(GL_TEXTURE_2D, view->id_reset_tex);
-    create_rec(225);
+    create_rec(view->screen_height - 275);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     glMatrixMode(GL_PROJECTION);
